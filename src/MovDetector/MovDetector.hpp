@@ -1,6 +1,8 @@
 #ifndef		_MOV_DETECTOR_H_
 #define		_MOV_DETECTOR_H_
 
+
+//		__MV_DETECT_VIBE_
 #include <opencv2/opencv.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
@@ -11,9 +13,11 @@
 #include "postDetector.hpp"
 #include "MOG3.hpp"
 
+
 using namespace cv;
 using namespace std;
 using namespace OurMogBgs;
+
 
 #define		BGFG_CR
 //#undef		BGFG_CR
@@ -83,13 +87,16 @@ public:
 	cv::Mat	frame[DETECTOR_NUM];
 	cv::Mat 	fgmask[DETECTOR_NUM];
 	cv::Mat	disframe[DETECTOR_NUM];
+	cv::Mat backframe[DETECTOR_NUM];
 	CPostDetect		m_postDetect[DETECTOR_NUM];
 	CPostDetect		m_postDetect2[DETECTOR_NUM];
-
+	
 	OSA_TskHndl m_maskDetectTsk[DETECTOR_NUM];
 	BOOL			m_bExit;
 
 	std::vector<cv::Point2i>		m_warnRoiVec[DETECTOR_NUM];
+
+	
 
 protected:
 
