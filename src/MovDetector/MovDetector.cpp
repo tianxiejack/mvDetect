@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <opencv2/video/background_segm.hpp>
+#include <opencv2/highgui/highgui.hpp>
 
 #include "MovDetector.hpp"
 
@@ -457,12 +458,19 @@ void CMoveDetector::maskDetectProcess(OSA_MsgHndl *pMsg)
 			}
 			return;
 		}
-		bool update_bg_model = true;
+		static bool update_bg_model = true;
+		static int  frameCount = 0;
 		if(!frame[chId].empty())
 		{
 			Uint32 t1 = OSA_getCurTimeInMsec() ;
+			frameCount++;
+			if(frameCount > 500)
+				update_bg_model = false;
 			(*fgbg[chId])(frame[chId], fgmask[chId], update_bg_model ? -1 : 0);
 			assert(fgmask[chId].channels() == 1);
+
+			imshow("MCDETECT", fgmask[chId]);
+			waitKey(1);
 
 			OSA_printf("%s:delt_t1=%d\n",__func__, OSA_getCurTimeInMsec() - t1);
 

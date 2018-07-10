@@ -36,7 +36,7 @@ static const float defaultVarMax3 =5*defaultVarInit3;// 5*defaultVarInit3;
 static const float defaultVarMin3 = 4.0f;
 
 // additional parameters
-static const float defaultfCT3 = 0.05;//0.05f; // complexity reduction prior constant 0 - no reduction of number of components
+static const float defaultfCT3 = 0.5;//0.05f; // complexity reduction prior constant 0 - no reduction of number of components
 static const unsigned char defaultnShadowDetection3 = (unsigned char)127; // value to use in the segmentation mask for shadows, set 0 not to do shadow detection
 static const float defaultfTau = 0.5f; // Tau - shadow threshold, see the paper for explanation
 
