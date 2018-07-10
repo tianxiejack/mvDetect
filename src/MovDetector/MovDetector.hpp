@@ -2,7 +2,6 @@
 #define		_MOV_DETECTOR_H_
 
 
-//		__MV_DETECT_VIBE_
 #include <opencv2/opencv.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>

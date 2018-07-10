@@ -9,21 +9,6 @@ using namespace cv;
 using namespace std;
 
 
-#if __MV_DETECT_VIBE_
-#include <cstddef>
-#include <ctime>
-#include <iostream>
-#include "ViBe.h"
-#include "distances/Manhattan.h"
-#include "system/types.h"
-using namespace ViBe;
-ViBeSequential<1, Manhattan<1> > * vibe;
-//typedef ViBeSequential<1, Manhattan<1> >  ViBe;
-//ViBe* vibe[DETECTOR_NUM];
-#endif
-
-
-
 CMoveDetector::CMoveDetector()
 {
 	int	i;
@@ -482,48 +467,24 @@ void CMoveDetector::maskDetectProcess(OSA_MsgHndl *pMsg)
 		if(!frame[chId].empty())
 		{
 			Uint32 t1 = OSA_getCurTimeInMsec() ;
-#if __MV_DETECT_VIBE_
-		static bool firstFrame = 1;
 
+		frameCount++;
+		if(frameCount > 500)
+			update_bg_model = false;
+		(*fgbg[chId])(frame[chId], fgmask[chId], update_bg_model ? -1 : 0);
+		assert(fgmask[chId].channels() == 1);
 
-	if (firstFrame) {
-		  /* Instantiation of ViBe. */
-		  vibe = new ViBeSequential<1, Manhattan<1> > (frame[chId].rows, frame[chId].cols, frame[chId].data);
-		  firstFrame = false;
-		}
-	fgmask[chId] = cv::Mat(frame[chId].rows, frame[chId].cols, CV_8UC1);
-	unsigned ttnode = OSA_getCurTimeInMsec();
-	vibe->segmentation(frame[chId].data, fgmask[chId].data);
-	printf("delta1 = %d \n",OSA_getCurTimeInMsec() - ttnode);
-	vibe->update(frame[chId].data, fgmask[chId].data);
-	printf("delta2 = %d \n",OSA_getCurTimeInMsec() - ttnode);
-
-	//medianBlur(fgmask[chId], fgmask[chId], 3);
-	//printf("delta3 = %d \n",OSA_getCurTimeInMsec() - ttnode);
-
-	//imshow("Segmentation by ViBe", fgmask[chId]);
-	//cvWaitKey(1);
-#else
-	frameCount++;
-	if(frameCount > 500)
-		update_bg_model = false;
-	(*fgbg[chId])(frame[chId], fgmask[chId], update_bg_model ? -1 : 0);
-	assert(fgmask[chId].channels() == 1);
-#endif
 			
-	
-			//OSA_printf("%s:delt_t1=%d\n",__func__, OSA_getCurTimeInMsec() - t1);
+		//OSA_printf("%s:delt_t1=%d\n",__func__, OSA_getCurTimeInMsec() - t1);
 
-			int k;
-			cv::Mat BGMask[2];
-			CPostDetect* pMVObj[2];
-			for(k=0; k<2; k++){
-				BGMask[k]= cv::Mat(fgmask[chId].rows>>1, fgmask[chId].cols, CV_8UC1, fgmask[chId].data+(k*fgmask[chId].cols*(fgmask[chId].rows>>1)) );
-				
-			}
-			pMVObj[0] = &m_postDetect[chId];
-			pMVObj[1] = &m_postDetect2[chId];
-
+		int k;
+		cv::Mat BGMask[2];
+		CPostDetect* pMVObj[2];
+		for(k=0; k<2; k++){
+			BGMask[k]= cv::Mat(fgmask[chId].rows>>1, fgmask[chId].cols, CV_8UC1, fgmask[chId].data+(k*fgmask[chId].cols*(fgmask[chId].rows>>1)) );
+		}
+		pMVObj[0] = &m_postDetect[chId];
+		pMVObj[1] = &m_postDetect2[chId];
 			
 #pragma omp parallel for
 			for(k=0; k<2; k++){
