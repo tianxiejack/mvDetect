@@ -34,9 +34,8 @@ CMoveDetector::CMoveDetector()
 		fgbg[i] = NULL;
 #endif
 
-#if __MV_DETECT_VIBE_
 	model = NULL;
-#endif
+
 	}
 }
 
@@ -473,7 +472,7 @@ void CMoveDetector::maskDetectProcess(OSA_MsgHndl *pMsg)
 		{
 			Uint32 t1 = OSA_getCurTimeInMsec() ;
 
-#if __MV_DETECT_VIBE_
+#if 1
 		static bool frameNumber = true;
 		if (frameNumber) {
 			model = (vibeModel_Sequential_t*)libvibeModel_Sequential_New();
@@ -508,7 +507,7 @@ void CMoveDetector::maskDetectProcess(OSA_MsgHndl *pMsg)
 			
 #pragma omp parallel for
 			for(k=0; k<2; k++){
-				pMVObj[k]->GetMoveDetect(BGMask[k].data, BGMask[k].cols, BGMask[k].rows, BGMask[k].cols, 5);
+				pMVObj[k]->GetMoveDetect(BGMask[k].data, BGMask[k].cols, BGMask[k].rows, BGMask[k].cols, area,5);
 				pMVObj[k]->MovTargetDetect(m_scaleX[chId],	m_scaleY[chId]);
 			}
 			{

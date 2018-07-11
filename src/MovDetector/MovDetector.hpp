@@ -98,9 +98,9 @@ public:
 
 	std::vector<cv::Point2i>		m_warnRoiVec[DETECTOR_NUM];
 	int area;
-#if __MV_DETECT_VIBE_
+
 	vibeModel_Sequential_t *model;
-#endif
+
 
 protected:
 
