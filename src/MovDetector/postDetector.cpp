@@ -342,6 +342,29 @@ BOOL  CPostDetect::GetMoveDetect(LPBYTE lpBitData,int lWidth, int lHeight, int i
 
 }
 
+
+inline void mergeOverLap(cv::Rect rec1,cv::Rect rec2,cv::Rect &outRec)
+{
+	cv::Rect tmp;
+	if(rec1.x < rec2.x){
+		tmp.x = rec1.x;
+		tmp.width = rec2.width + rec2.x - rec1.x;
+	}else{
+		tmp.x = rec2.x;
+		tmp.width = rec1.width + rec1.x - rec2.x;
+	}
+	
+	if(rec1.y < rec2.y){
+		tmp.y = rec1.y;
+		tmp.height = rec2.height + rec2.y - rec1.y;
+	}else{
+		tmp.y = rec2.y;
+		tmp.height = rec1.height + rec1.y - rec2.y;
+	}
+	outRec = tmp;
+}
+
+
 void CPostDetect::MergeRect(Pattern	ptn[], int num)
 {
 	int	i,	j;
@@ -365,7 +388,8 @@ void CPostDetect::MergeRect(Pattern	ptn[], int num)
 			}else if(status == 2){
 				ptn[i].bValid = false;
 			}else if(status == 0){//overlap
-				;
+				mergeOverLap(rc1,rc2,rc1);
+				ptn[i].bValid = false;
 			}
 		}
 	}
