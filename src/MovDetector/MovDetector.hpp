@@ -67,7 +67,7 @@ public:
 	int		creat(int history = 500,  float varThreshold = 16, bool bShadowDetection=true);
 	int		init(LPNOTIFYFUNC	notifyFunc, void *context);
 	int		destroy();
-	void	setFrame(cv::Mat	src, 	int chId = 0);
+	void	setFrame(cv::Mat	src, int inputArea , int chId = 0);
 
 	void	clearWarningRoi(int chId	= 0);//清除警戒区
 	void	setWarningRoi(std::vector<cv::Point2i>	warnRoi,	int chId	= 0);
@@ -97,7 +97,7 @@ public:
 	BOOL			m_bExit;
 
 	std::vector<cv::Point2i>		m_warnRoiVec[DETECTOR_NUM];
-	
+	int area;
 #if __MV_DETECT_VIBE_
 	vibeModel_Sequential_t *model;
 #endif

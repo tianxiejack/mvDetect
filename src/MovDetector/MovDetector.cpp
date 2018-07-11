@@ -223,7 +223,7 @@ void	CMoveDetector::setNFrames(int nframes, int chId /*= 0*/)
 
 #endif
 
-void	CMoveDetector::setFrame(cv::Mat	src, int chId /*= 0*/)
+void	CMoveDetector::setFrame(cv::Mat	src ,int inputArea,int chId /*= 0*/)
 {
 	//static unsigned int time1 = 0;
 	//printf("time during : %d \n",OSA_getCurTimeInMsec() - time1);
@@ -235,6 +235,7 @@ void	CMoveDetector::setFrame(cv::Mat	src, int chId /*= 0*/)
 	#else
 		src.copyTo(frame[chId]);
 	#endif
+		area = inputArea ;
 		m_postDetect[chId].InitializedMD(src.cols,	src.rows>>1, src.cols);
 		m_postDetect2[chId].InitializedMD(src.cols,	src.rows>>1, src.cols);
 		OSA_tskSendMsg(&m_maskDetectTsk[chId], NULL, (Uint16)chId, NULL, 0);
@@ -482,7 +483,7 @@ void CMoveDetector::maskDetectProcess(OSA_MsgHndl *pMsg)
 		fgmask[chId] = Mat(frame[chId].rows, frame[chId].cols, CV_8UC1);
 		libvibeModel_Sequential_Segmentation_8u_C1R(model, frame[chId].data, fgmask[chId].data);
 		libvibeModel_Sequential_Update_8u_C1R(model, frame[chId].data, fgmask[chId].data);
-	//	medianBlur( fgmask[chId],  fgmask[chId], 3);
+		//medianBlur( fgmask[chId],  fgmask[chId], 3);
 		//imshow("bitMap",fgmask[chId]);
 		//waitKey(1);
 		

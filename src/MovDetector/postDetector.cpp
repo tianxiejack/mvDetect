@@ -102,7 +102,7 @@ m_pPattern[]:每个连通区域的位置
  */
 
 #define BOL		2
-BOOL  CPostDetect::GetMoveDetect(LPBYTE lpBitData,int lWidth, int lHeight, int iStride,  int iscatter/* = 20*/)
+BOOL  CPostDetect::GetMoveDetect(LPBYTE lpBitData,int lWidth, int lHeight, int iStride, int area, int iscatter/* = 20*/)
 {
 	BOOL iRet = TRUE;
 	iRet = InitializedMD(lWidth, lHeight, iStride);
@@ -134,7 +134,7 @@ BOOL  CPostDetect::GetMoveDetect(LPBYTE lpBitData,int lWidth, int lHeight, int i
 
 	int patternnum = 0;//(boundRect.size()< SAMPLE_NUMBER) ? boundRect.size():SAMPLE_NUMBER;
 	for(int i = 0; i< contours.size();i++){
-		if(boundRect[i].width*boundRect[i].height>50){
+		if(boundRect[i].width*boundRect[i].height > area){
 			ptn[patternnum].lefttop.x = boundRect[i].x;
 			ptn[patternnum].lefttop.y = boundRect[i].y;
 			ptn[patternnum].rightbottom.x = boundRect[i].x + boundRect[i].width;
