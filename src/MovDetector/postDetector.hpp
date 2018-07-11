@@ -61,11 +61,11 @@ public:
 
 	CBGFGTracker		m_bgfgTrack;
 
-	std::vector<cv::Point2i>				m_warnRoi;
+	std::vector<cv::Point2i>		m_warnRoi;
 	std::vector<TRK_RECT_INFO>		m_warnTargetRec;
 	std::vector<TRK_RECT_INFO>		m_movTargetRec;
 	std::vector<TRK_RECT_INFO>		m_edgeTargetRec;
-	int							m_warnState;
+	int								m_warnState;
 	std::vector<TRK_RECT_INFO>		warnTargetBK;
 };
 

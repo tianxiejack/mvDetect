@@ -10,7 +10,7 @@ CMvDectInterface *MvDetector_Create()
 	pTmpMV= (CMoveDetector*)new CMoveDetector;
 	pMvObj = (CMvDectInterface*)pTmpMV;
 	CV_Assert(pMvObj != NULL);
-
+	
 	pTmpMV->creat();
 	return (CMvDectInterface*)pMvObj;
 }

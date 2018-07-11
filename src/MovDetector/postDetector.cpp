@@ -122,6 +122,51 @@ BOOL  CPostDetect::GetMoveDetect(LPBYTE lpBitData,int lWidth, int lHeight, int i
 		memset(lpBitData+iCur*iStride + lWidth - BOL, 0, BOL);
 	}
 
+	Mat thresh = Mat(lHeight,lWidth,CV_8UC1,lpBitData);
+	
+	vector< vector<Point> > contours;
+	vector< cv::Rect > boundRect;
+	findContours(thresh, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+
+	boundRect.resize(contours.size());
+	for (int i = 0; i < contours.size(); i++)
+       boundRect[i] = boundingRect(contours[i]);
+
+	int patternnum = 0;//(boundRect.size()< SAMPLE_NUMBER) ? boundRect.size():SAMPLE_NUMBER;
+	for(int i = 0; i< contours.size();i++){
+		if(boundRect[i].width*boundRect[i].height>50){
+			ptn[patternnum].lefttop.x = boundRect[i].x;
+			ptn[patternnum].lefttop.y = boundRect[i].y;
+			ptn[patternnum].rightbottom.x = boundRect[i].x + boundRect[i].width;
+			ptn[patternnum].rightbottom.y = boundRect[i].y + boundRect[i].height;	
+			patternnum++;
+			if(patternnum >= SAMPLE_NUMBER)
+				break;
+		}
+	}
+	
+	
+
+#if 0
+
+	BOOL iRet = TRUE;
+	iRet = InitializedMD(lWidth, lHeight, iStride);
+	if (!iRet) return FALSE;
+
+	Pattern ptn[SAMPLE_NUMBER];
+	memset(&ptn, 0, sizeof(ptn));
+	memset(m_ptemp, 0, lWidth*lHeight*sizeof(TYPE_T));//全部置成0
+	memset(m_iCount,0,sizeof(int)*SAMPLE_NUMBER);
+	memset(m_iRelative,0,sizeof(int)*SAMPLE_NUMBER);
+	memset(m_list,0,sizeof(int)*SAMPLE_NUMBER);
+
+	memset(lpBitData, 0, iStride*BOL);
+	memset(lpBitData+iStride*(lHeight-BOL), 0, iStride*BOL);
+	for(int iCur=0; iCur<lHeight; iCur++){
+		memset(lpBitData+iCur*iStride, 0, BOL);
+		memset(lpBitData+iCur*iStride + lWidth - BOL, 0, BOL);
+	}
+
 	int i, j, t, k;
 	int label = 1; 
 	int kx, ky;  //用于标志附近的值
@@ -284,6 +329,7 @@ BOOL  CPostDetect::GetMoveDetect(LPBYTE lpBitData,int lWidth, int lHeight, int i
 		ASSERT(ptn[t-1].rightbottom.x < lWidth);
 		ASSERT(ptn[t-1].rightbottom.y < lHeight);
 	}
+#endif
 #if 0
 	m_patternnum = 0;
 	memcpy(m_pPatterns, &ptn, sizeof(ptn));
@@ -292,6 +338,8 @@ BOOL  CPostDetect::GetMoveDetect(LPBYTE lpBitData,int lWidth, int lHeight, int i
 	MergeRect(ptn, patternnum);
 #endif
 	return iRet;
+
+
 }
 
 void CPostDetect::MergeRect(Pattern	ptn[], int num)

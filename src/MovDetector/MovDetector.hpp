@@ -1,7 +1,7 @@
 #ifndef		_MOV_DETECTOR_H_
 #define		_MOV_DETECTOR_H_
 
-
+//__MV_DETECT_VIBE_
 #include <opencv2/opencv.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
@@ -11,6 +11,9 @@
 #include "mvdectInterface.hpp"
 #include "postDetector.hpp"
 #include "MOG3.hpp"
+
+
+#include "vibe-background-sequential.h" 	//__MV_DETECT_VIBE_
 
 
 using namespace cv;
@@ -94,8 +97,10 @@ public:
 	BOOL			m_bExit;
 
 	std::vector<cv::Point2i>		m_warnRoiVec[DETECTOR_NUM];
-
 	
+#if __MV_DETECT_VIBE_
+	vibeModel_Sequential_t *model;
+#endif
 
 protected:
 

@@ -33,6 +33,10 @@ CMoveDetector::CMoveDetector()
 #else
 		fgbg[i] = NULL;
 #endif
+
+#if __MV_DETECT_VIBE_
+	model = NULL;
+#endif
 	}
 }
 
@@ -468,14 +472,29 @@ void CMoveDetector::maskDetectProcess(OSA_MsgHndl *pMsg)
 		{
 			Uint32 t1 = OSA_getCurTimeInMsec() ;
 
+#if __MV_DETECT_VIBE_
+		static bool frameNumber = true;
+		if (frameNumber) {
+			model = (vibeModel_Sequential_t*)libvibeModel_Sequential_New();
+			libvibeModel_Sequential_AllocInit_8u_C1R(model, frame[chId].data, frame[chId].cols, frame[chId].rows);
+			frameNumber = false;		
+		}
+		fgmask[chId] = Mat(frame[chId].rows, frame[chId].cols, CV_8UC1);
+		libvibeModel_Sequential_Segmentation_8u_C1R(model, frame[chId].data, fgmask[chId].data);
+		libvibeModel_Sequential_Update_8u_C1R(model, frame[chId].data, fgmask[chId].data);
+	//	medianBlur( fgmask[chId],  fgmask[chId], 3);
+		//imshow("bitMap",fgmask[chId]);
+		//waitKey(1);
+		
+#else
 		frameCount++;
 		if(frameCount > 500)
 			update_bg_model = false;
 		(*fgbg[chId])(frame[chId], fgmask[chId], update_bg_model ? -1 : 0);
 		assert(fgmask[chId].channels() == 1);
-
+#endif
 			
-		//OSA_printf("%s:delt_t1=%d\n",__func__, OSA_getCurTimeInMsec() - t1);
+		OSA_printf("%s:delt_t1=%d\n",__func__, OSA_getCurTimeInMsec() - t1);
 
 		int k;
 		cv::Mat BGMask[2];
@@ -492,7 +511,7 @@ void CMoveDetector::maskDetectProcess(OSA_MsgHndl *pMsg)
 				pMVObj[k]->MovTargetDetect(m_scaleX[chId],	m_scaleY[chId]);
 			}
 			{
-				OSA_printf("%s:delt_t4=%d\n",__func__, OSA_getCurTimeInMsec() - ttnode);
+				OSA_printf("%s:delt_t2=%d\n",__func__, OSA_getCurTimeInMsec() - t1);
 
 				if(	(m_warnMode[chId] & WARN_MOVEDETECT_MODE)	)	//move target detect
 				{
