@@ -36,7 +36,7 @@ public:
 	virtual	void	getMoveTarget(std::vector<TRK_RECT_INFO>	&resTarget,	int chId	= 0){};//移动目标
 	virtual	void	getBoundTarget(std::vector<TRK_RECT_INFO>	&resTarget,	int chId	= 0){};//越界目标
 	virtual	void	getWarnTarget(std::vector<TRK_RECT_INFO>	&resTarget,	int chId	= 0){};//警戒区周边所有目标
-	//virtual void	mvPause();
+	virtual void	mvPause(){};
 };
 
 CMvDectInterface *MvDetector_Create();

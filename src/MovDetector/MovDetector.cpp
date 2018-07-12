@@ -561,7 +561,7 @@ void CMoveDetector::maskDetectProcess(OSA_MsgHndl *pMsg)
 		static int  frameCount = 0;
 		if(!frame[chId].empty())
 		{
-			Uint32 t1 = OSA_getCurTimeInMsec() ;
+		//	Uint32 t1 = OSA_getCurTimeInMsec() ;
 
 #if 1
 		
@@ -591,7 +591,7 @@ void CMoveDetector::maskDetectProcess(OSA_MsgHndl *pMsg)
 		assert(fgmask[chId].channels() == 1);
 #endif
 			
-		OSA_printf("%s:delt_t1=%d\n",__func__, OSA_getCurTimeInMsec() - t1);
+		//OSA_printf("%s:delt_t1=%d\n",__func__, OSA_getCurTimeInMsec() - t1);
 
 		int k;
 		cv::Mat BGMask[2];
@@ -608,7 +608,7 @@ void CMoveDetector::maskDetectProcess(OSA_MsgHndl *pMsg)
 				pMVObj[k]->MovTargetDetect(m_scaleX[chId],	m_scaleY[chId]);
 			}
 			{
-				OSA_printf("%s:delt_t2=%d\n",__func__, OSA_getCurTimeInMsec() - t1);
+				//OSA_printf("%s:delt_t2=%d\n",__func__, OSA_getCurTimeInMsec() - t1);
 
 				if(	(m_warnMode[chId] & WARN_MOVEDETECT_MODE)	)	//move target detect
 				{
