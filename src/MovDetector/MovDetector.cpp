@@ -39,7 +39,10 @@ CMoveDetector::CMoveDetector()
 	m_BKWidth[i] = 0;
 	threshold[i] = 0;
 	area[i] = 0;
+	frameidx[i] = 0;
+	processDone[i] = true;
 	}
+	resetFlag = false;
 }
 
 CMoveDetector::~CMoveDetector()
@@ -146,7 +149,10 @@ int CMoveDetector::destroy()
 		m_BKHeight[i] = 0;
 		threshold[i] = 0;
 		area[i] = 0;
+		frameidx[i] = 0;
+		processDone[i]= false;
 	}
+	resetFlag = false;
 	return rtn;
 }
 
@@ -304,23 +310,20 @@ void CMoveDetector::setFrame(cv::Mat	src ,int srcwidth , int srcheight ,int accu
 	if( !src.empty() ){
 
 	#if 1
-		cv::blur(gray, frame[chId],cv::Size(5,5));
+		cv::blur(gray, frame[chId],cv::Size(3,3));
 	#else
 		src.copyTo(frame[chId]);
 	#endif
 		area[chId] = inputArea ;
 		threshold[chId] = inputThreshold;
-		m_postDetect[chId].InitializedMD(gray.cols,	gray.rows>>1, gray.cols);
-		m_postDetect2[chId].InitializedMD(gray.cols,gray.rows>>1, gray.cols);
-		OSA_tskSendMsg(&m_maskDetectTsk[chId], NULL, (Uint16)chId, NULL, 0);
+		if(processDone[chId]){
+			processDone[chId] = false;
+			m_postDetect[chId].InitializedMD(gray.cols, gray.rows>>1, gray.cols);
+			m_postDetect2[chId].InitializedMD(gray.cols,gray.rows>>1, gray.cols);
+			OSA_tskSendMsg(&m_maskDetectTsk[chId], NULL, (Uint16)chId, NULL, 0);
+		}
 	}
-	//time1 = OSA_getCurTimeInMsec();
 }
-
-//void	CMoveDetector::setDetectRoi(cv::Rect roi, int chId/* = 0*/)
-//{
-//	m_detectRoi[chId] = roi;
-//}
 
 
 void	CMoveDetector::setWarningRoi(std::vector<cv::Point2i>	warnRoi,	int chId	/*= 0*/)
@@ -433,18 +436,9 @@ static void CopyTrkTarget(CPostDetect *pMVObj,  std::vector<TRK_RECT_INFO> &trkT
 
 void CMoveDetector::mvPause()
 {
-	for(int i =0;i<DETECTOR_NUM; i++){
-		if(model[i] != NULL){
-			delete model[i];
-			model[i] = NULL;
-			m_BKWidth[i] = 0;
-			m_BKHeight[i] = 0;
-			threshold[i] = 0;
-		}
-	}
+	if(!resetFlag)
+		resetFlag = true;
 }
-
-
 
 #if 0
 void CMoveDetector::maskDetectProcess(OSA_MsgHndl *pMsg)
@@ -541,9 +535,10 @@ void CMoveDetector::maskDetectProcess(OSA_MsgHndl *pMsg)
 		int chId;
 		chId	=	pMsg->cmd ;
 		CV_Assert(chId < DETECTOR_NUM);
-		if(m_bExit)
+		if(m_bExit){
+			processDone[chId] = true;
 			return;
-
+		}
 		if(m_warnRoiVec[chId].size() == 0)
 		{
 			m_movTarget[chId].clear();
@@ -555,6 +550,7 @@ void CMoveDetector::maskDetectProcess(OSA_MsgHndl *pMsg)
 			{
 				(*m_notifyFunc)(m_context, chId);
 			}
+			processDone[chId] = true;
 			return;
 		}
 		static bool update_bg_model = true;
@@ -564,25 +560,32 @@ void CMoveDetector::maskDetectProcess(OSA_MsgHndl *pMsg)
 		//	Uint32 t1 = OSA_getCurTimeInMsec() ;
 
 #if 1
-		
+		if(frameidx[chId] < 5){
+			frameidx[chId]++;		
+		}
 		if(frame[chId].cols != m_BKWidth[chId] || frame[chId].rows != m_BKHeight[chId]){
-					if(model[chId]!= NULL)	{
-						delete model[chId];
-						model[chId]= NULL;
-					}
-				}
-		if (model[chId]== NULL) {
+			if(model[chId]!= NULL)	{
+				delete model[chId];
+				model[chId]= NULL;
+			}
+		}
+		if (model[chId] == NULL) {
 			model[chId] = (vibeModel_Sequential_t*)libvibeModel_Sequential_New(threshold[chId]);
 			libvibeModel_Sequential_AllocInit_8u_C1R(model[chId], frame[chId].data, frame[chId].cols, frame[chId].rows);
 			m_BKWidth[chId] = frame[chId].cols;
 			m_BKHeight[chId] = frame[chId].rows;
+			m_movTarget[chId].clear();
 		}
-
-		fgmask[chId] = Mat(frame[chId].rows, frame[chId].cols, CV_8UC1);
-		libvibeModel_Sequential_Segmentation_8u_C1R(model[chId], frame[chId].data, fgmask[chId].data);
-		libvibeModel_Sequential_Update_8u_C1R(model[chId], frame[chId].data, fgmask[chId].data);
-
-		
+		if(model[chId] != NULL){
+			fgmask[chId] = Mat(frame[chId].rows, frame[chId].cols, CV_8UC1);
+			libvibeModel_Sequential_Segmentation_8u_C1R(model[chId], frame[chId].data, fgmask[chId].data);
+			libvibeModel_Sequential_Update_8u_C1R(model[chId], frame[chId].data, fgmask[chId].data);
+		}
+		if(frameidx[chId] < 3)
+		{
+			processDone[chId] = true;
+			return ;
+		}
 #else
 		frameCount++;
 		if(frameCount > 500)
@@ -617,19 +620,34 @@ void CMoveDetector::maskDetectProcess(OSA_MsgHndl *pMsg)
 					cv::Size offsize;
 					offsize.width = 0;
 					offsize.height = (int)((fgmask[chId].rows>>1)*m_scaleY[chId]);
-					m_movTarget[chId].resize(nsize1+nsize2);
+					m_movTarget[chId].resize(nsize1+nsize2);					
 					CopyTrkTarget(&m_postDetect[chId], m_movTarget[chId], nsize1, 0, cv::Size(0,0));
-					CopyTrkTarget(&m_postDetect2[chId], m_movTarget[chId], nsize2, nsize1, offsize);
+					CopyTrkTarget(&m_postDetect2[chId], m_movTarget[chId], nsize2, nsize1, offsize);						
 				}
 
-				if(m_notifyFunc != NULL)
+				if( m_notifyFunc != NULL )
 				{
 					(*m_notifyFunc)(m_context, chId);
 				}
 		}
-
+		
 	}
-	
+	if( true == resetFlag ){
+		for(int i =0;i<DETECTOR_NUM; i++){
+			if(model[i] != NULL){
+			libvibeModel_Sequential_Free(model[i]);
+			//delete model[i];
+			model[i] = NULL;
+		}
+		m_BKWidth[i] = 0;
+		m_BKHeight[i] = 0;
+		threshold[i] = 0;
+		m_movTarget[i].clear();
+		frameidx[i] = 0;
+		}
+		resetFlag = false;
+	}
+	processDone[chId] = true;
 }
 #endif
 

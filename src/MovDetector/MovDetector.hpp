@@ -75,7 +75,7 @@ public:
 	void	setDrawOSD(cv::Mat	dispOSD, int chId = 0);
 	void	setWarnMode(WARN_MODE	warnMode,	int chId	= 0);
 	void	enableSelfDraw(bool	bEnable, int chId = 0);
-	void   setROIScalXY(float scaleX = 1.0, float scaleY = 1.0, int chId = 0);
+	void    setROIScalXY(float scaleX = 1.0, float scaleY = 1.0, int chId = 0);
 
 
 	void	getLostTarget(std::vector<TRK_RECT_INFO>	&resTarget,	int chId	= 0);//丢失目标
@@ -103,7 +103,9 @@ public:
 	int threshold[DETECTOR_NUM];
 	vibeModel_Sequential_t *model[DETECTOR_NUM];
 	int m_BKWidth[DETECTOR_NUM], m_BKHeight[DETECTOR_NUM];
-
+	bool processDone[DETECTOR_NUM];
+	bool resetFlag;
+	unsigned char frameidx[DETECTOR_NUM];
 
 protected:
 
