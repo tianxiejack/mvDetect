@@ -106,7 +106,7 @@ uint32_t libvibeModel_Sequential_PrintParameters(const vibeModel_Sequential_t *m
 // -----------------------------------------------------------------------------
 // Creates the data structure
 // -----------------------------------------------------------------------------
-vibeModel_Sequential_t *libvibeModel_Sequential_New()
+vibeModel_Sequential_t *libvibeModel_Sequential_New(int threshold)
 {
   /* Model structure alloc. */
   vibeModel_Sequential_t *model = NULL;
@@ -115,7 +115,7 @@ vibeModel_Sequential_t *libvibeModel_Sequential_New()
 
   /* Default parameters values. */
   model->numberOfSamples         = 20;
-  model->matchingThreshold       = 40;
+  model->matchingThreshold       = threshold;//40;
   model->matchingNumber          = 2;
   model->updateFactor            = 16;
 

@@ -37,7 +37,8 @@ CMoveDetector::CMoveDetector()
 	model[i] = NULL;
 	m_BKHeight[i] = 0;
 	m_BKWidth[i] = 0;
-
+	threshold[i] = 0;
+	area[i] = 0;
 	}
 }
 
@@ -143,7 +144,8 @@ int CMoveDetector::destroy()
 		model[i] = NULL;
 		m_BKWidth[i] = 0;
 		m_BKHeight[i] = 0;
-
+		threshold[i] = 0;
+		area[i] = 0;
 	}
 	return rtn;
 }
@@ -229,7 +231,7 @@ void	CMoveDetector::setNFrames(int nframes, int chId /*= 0*/)
 
 #endif
 
-void CMoveDetector::setFrame(cv::Mat	src ,int srcwidth , int srcheight ,int accuracy,int chId,int inputArea)
+void CMoveDetector::setFrame(cv::Mat	src ,int srcwidth , int srcheight ,int accuracy,int chId,int inputArea,int inputThreshold/*30*/)
 {
 	float dstWidth ,dstHeigth;
 	if(srcwidth >= 1920)
@@ -250,8 +252,8 @@ void CMoveDetector::setFrame(cv::Mat	src ,int srcwidth , int srcheight ,int accu
 			dstWidth 	= 1280.0;
 			dstHeigth 	= 720.0;
 		}else{
-			dstWidth 	= 640.0;
-			dstHeigth 	= 480.0;	
+			dstWidth 	= (float)srcwidth;
+			dstHeigth 	= (float)srcheight;	
 		}	
 	}else if(srcwidth >= 1280 && srcwidth < 1920){
 		if( 0 == accuracy ){
@@ -270,8 +272,8 @@ void CMoveDetector::setFrame(cv::Mat	src ,int srcwidth , int srcheight ,int accu
 			dstWidth 	= 1280.0;
 			dstHeigth 	= 720.0;
 		}else{
-			dstWidth 	= 640.0;
-			dstHeigth 	= 512.0;	
+			dstWidth 	= (float)srcwidth;
+			dstHeigth 	= (float)srcheight;	
 		}
 	}else if(srcwidth<1280){
 		if( 0 == accuracy ){
@@ -287,23 +289,29 @@ void CMoveDetector::setFrame(cv::Mat	src ,int srcwidth , int srcheight ,int accu
 			dstWidth 	= 720.0;
 			dstHeigth 	= 576.0;
 		}else{
-			dstWidth 	= 640.0;
-			dstHeigth 	= 512.0;	
+			dstWidth 	= (float)srcwidth;
+			dstHeigth 	= (float)srcheight;	
 		}
 	}
 
+	float x = (float)srcwidth/dstWidth;
+	float y = (float)srcheight/dstHeigth;
+	this->setROIScalXY(x,y,0);
+	cv::Mat gray;
+	cv::resize(src,gray, cv::Size((int)dstWidth, (int)dstHeigth));
 
 	CV_Assert(chId	< DETECTOR_NUM);
 	if( !src.empty() ){
 
 	#if 1
-		cv::blur(src, frame[chId],cv::Size(5,5));
+		cv::blur(gray, frame[chId],cv::Size(5,5));
 	#else
 		src.copyTo(frame[chId]);
 	#endif
-		area = inputArea ;
-		m_postDetect[chId].InitializedMD(src.cols,	src.rows>>1, src.cols);
-		m_postDetect2[chId].InitializedMD(src.cols,	src.rows>>1, src.cols);
+		area[chId] = inputArea ;
+		threshold[chId] = inputThreshold;
+		m_postDetect[chId].InitializedMD(gray.cols,	gray.rows>>1, gray.cols);
+		m_postDetect2[chId].InitializedMD(gray.cols,gray.rows>>1, gray.cols);
 		OSA_tskSendMsg(&m_maskDetectTsk[chId], NULL, (Uint16)chId, NULL, 0);
 	}
 	//time1 = OSA_getCurTimeInMsec();
@@ -431,6 +439,7 @@ void CMoveDetector::mvPause()
 			model[i] = NULL;
 			m_BKWidth[i] = 0;
 			m_BKHeight[i] = 0;
+			threshold[i] = 0;
 		}
 	}
 }
@@ -563,7 +572,7 @@ void CMoveDetector::maskDetectProcess(OSA_MsgHndl *pMsg)
 					}
 				}
 		if (model[chId]== NULL) {
-			model[chId] = (vibeModel_Sequential_t*)libvibeModel_Sequential_New();
+			model[chId] = (vibeModel_Sequential_t*)libvibeModel_Sequential_New(threshold[chId]);
 			libvibeModel_Sequential_AllocInit_8u_C1R(model[chId], frame[chId].data, frame[chId].cols, frame[chId].rows);
 			m_BKWidth[chId] = frame[chId].cols;
 			m_BKHeight[chId] = frame[chId].rows;
@@ -595,7 +604,7 @@ void CMoveDetector::maskDetectProcess(OSA_MsgHndl *pMsg)
 			
 #pragma omp parallel for
 			for(k=0; k<2; k++){
-				pMVObj[k]->GetMoveDetect(BGMask[k].data, BGMask[k].cols, BGMask[k].rows, BGMask[k].cols, area,5);
+				pMVObj[k]->GetMoveDetect(BGMask[k].data, BGMask[k].cols, BGMask[k].rows, BGMask[k].cols, area[chId],5);
 				pMVObj[k]->MovTargetDetect(m_scaleX[chId],	m_scaleY[chId]);
 			}
 			{

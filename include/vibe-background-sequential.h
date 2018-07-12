@@ -70,7 +70,7 @@ typedef struct vibeModel_Sequential vibeModel_Sequential_t;
  * \result A pointer to a newly allocated \ref vibeModel_Sequential_t
  * structure, or <tt>NULL</tt> in the case of an error.
  */
-vibeModel_Sequential_t *libvibeModel_Sequential_New();
+vibeModel_Sequential_t *libvibeModel_Sequential_New(int threshold);
 
 /**
  * ViBe uses several parameters.
