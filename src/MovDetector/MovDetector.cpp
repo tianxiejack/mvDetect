@@ -34,7 +34,9 @@ CMoveDetector::CMoveDetector()
 		fgbg[i] = NULL;
 #endif
 
-	model = NULL;
+	model[i] = NULL;
+	m_BKHeight[i] = 0;
+	m_BKWidth[i] = 0;
 
 	}
 }
@@ -124,19 +126,24 @@ int CMoveDetector::destroy()
 	}
 	for(i=0; i<DETECTOR_NUM; i++)
 	{
-#ifdef		BGFG_CR
-		if(fgbg[i] != NULL)
-		{
-			delete fgbg[i];
-			fgbg[i] = NULL;
-		}
-#else
-		if(fgbg[i] != NULL)
-		{
-			delete fgbg[i];
-			fgbg[i] = NULL;
-		}
-#endif
+		#ifdef		BGFG_CR
+			if(fgbg[i] != NULL)
+			{
+				delete fgbg[i];
+				fgbg[i] = NULL;
+			}
+		#else
+			if(fgbg[i] != NULL)
+			{
+				delete fgbg[i];
+				fgbg[i] = NULL;
+			}
+		#endif
+
+		model[i] = NULL;
+		m_BKWidth[i] = 0;
+		m_BKHeight[i] = 0;
+
 	}
 	return rtn;
 }
@@ -415,6 +422,21 @@ static void CopyTrkTarget(CPostDetect *pMVObj,  std::vector<TRK_RECT_INFO> &trkT
 	}
 }
 
+
+void CMoveDetector::mvPause()
+{
+	for(int i =0;i<DETECTOR_NUM; i++){
+		if(model[i] != NULL){
+			delete model[i];
+			model[i] = NULL;
+			m_BKWidth[i] = 0;
+			m_BKHeight[i] = 0;
+		}
+	}
+}
+
+
+
 #if 0
 void CMoveDetector::maskDetectProcess(OSA_MsgHndl *pMsg)
 {
@@ -533,18 +555,24 @@ void CMoveDetector::maskDetectProcess(OSA_MsgHndl *pMsg)
 			Uint32 t1 = OSA_getCurTimeInMsec() ;
 
 #if 1
-		static bool frameNumber = true;
-		if (frameNumber) {
-			model = (vibeModel_Sequential_t*)libvibeModel_Sequential_New();
-			libvibeModel_Sequential_AllocInit_8u_C1R(model, frame[chId].data, frame[chId].cols, frame[chId].rows);
-			frameNumber = false;		
+		
+		if(frame[chId].cols != m_BKWidth[chId] || frame[chId].rows != m_BKHeight[chId]){
+					if(model[chId]!= NULL)	{
+						delete model[chId];
+						model[chId]= NULL;
+					}
+				}
+		if (model[chId]== NULL) {
+			model[chId] = (vibeModel_Sequential_t*)libvibeModel_Sequential_New();
+			libvibeModel_Sequential_AllocInit_8u_C1R(model[chId], frame[chId].data, frame[chId].cols, frame[chId].rows);
+			m_BKWidth[chId] = frame[chId].cols;
+			m_BKHeight[chId] = frame[chId].rows;
 		}
+
 		fgmask[chId] = Mat(frame[chId].rows, frame[chId].cols, CV_8UC1);
-		libvibeModel_Sequential_Segmentation_8u_C1R(model, frame[chId].data, fgmask[chId].data);
-		libvibeModel_Sequential_Update_8u_C1R(model, frame[chId].data, fgmask[chId].data);
-		//medianBlur( fgmask[chId],  fgmask[chId], 3);
-		//imshow("bitMap",fgmask[chId]);
-		//waitKey(1);
+		libvibeModel_Sequential_Segmentation_8u_C1R(model[chId], frame[chId].data, fgmask[chId].data);
+		libvibeModel_Sequential_Update_8u_C1R(model[chId], frame[chId].data, fgmask[chId].data);
+
 		
 #else
 		frameCount++;

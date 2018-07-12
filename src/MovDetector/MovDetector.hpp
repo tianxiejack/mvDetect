@@ -83,7 +83,9 @@ public:
 	void	getMoveTarget(std::vector<TRK_RECT_INFO>	&resTarget,	int chId	= 0);//移动目标
 	void	getBoundTarget(std::vector<TRK_RECT_INFO>	&resTarget,	int chId	= 0);//越界目标
 	void	getWarnTarget(std::vector<TRK_RECT_INFO>	&resTarget,	int chId	= 0);//警戒区周边所有目标
+	void	mvPause();
 
+	
 public:
 	MOG2_PARAM	m_mogParam;
 	cv::Mat	frame[DETECTOR_NUM];
@@ -99,7 +101,8 @@ public:
 	std::vector<cv::Point2i>		m_warnRoiVec[DETECTOR_NUM];
 	int area;
 
-	vibeModel_Sequential_t *model;
+	vibeModel_Sequential_t *model[DETECTOR_NUM];
+	int m_BKWidth[DETECTOR_NUM], m_BKHeight[DETECTOR_NUM];
 
 
 protected:
