@@ -21,7 +21,7 @@ public:
 public:
 	virtual	int	init(LPNOTIFYFUNC	notifyFunc, void *context){return 1;};
 	virtual	int destroy(){return 1;};
-	virtual	void	setFrame(cv::Mat	src, int inputArea,	int chId = 0){};//输入视频帧
+	virtual	void	setFrame(cv::Mat	src ,int srcwidth , int srcheight ,int accuracy,int chId,int inputArea){};//输入视频帧
 	virtual	void	enableSelfDraw(bool	bEnable, int chId = 0){};
 	virtual	void   setROIScalXY(float scaleX = 1.0, float scaleY = 1.0, int chId = 0){};//设置缩放系数，默认为1.0
 

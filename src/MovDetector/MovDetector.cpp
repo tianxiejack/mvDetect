@@ -222,10 +222,70 @@ void	CMoveDetector::setNFrames(int nframes, int chId /*= 0*/)
 
 #endif
 
-void	CMoveDetector::setFrame(cv::Mat	src ,int inputArea,int chId /*= 0*/)
+void CMoveDetector::setFrame(cv::Mat	src ,int srcwidth , int srcheight ,int accuracy,int chId,int inputArea)
 {
-	//static unsigned int time1 = 0;
-	//printf("time during : %d \n",OSA_getCurTimeInMsec() - time1);
+	float dstWidth ,dstHeigth;
+	if(srcwidth >= 1920)
+	{
+		if( 0 == accuracy ){
+			dstWidth 	= 640.0;
+			dstHeigth 	= 480.0;
+		}else if( 1 == accuracy ){
+			dstWidth 	= 720.0;
+			dstHeigth 	= 576.0;
+		}else if( 2 == accuracy ){
+			dstWidth 	= 960.0;
+			dstHeigth 	= 540.0;
+		}else if( 3 == accuracy ){
+			dstWidth 	= 1024.0;
+			dstHeigth 	= 768.0;
+		}else if( 4 == accuracy ){
+			dstWidth 	= 1280.0;
+			dstHeigth 	= 720.0;
+		}else{
+			dstWidth 	= 640.0;
+			dstHeigth 	= 480.0;	
+		}	
+	}else if(srcwidth >= 1280 && srcwidth < 1920){
+		if( 0 == accuracy ){
+			dstWidth 	= 480.0;
+			dstHeigth 	= 320.0;
+		}else if( 1 == accuracy ){
+			dstWidth 	= 640.0;
+			dstHeigth 	= 480.0;
+		}else if( 2 == accuracy ){
+			dstWidth 	= 640.0;
+			dstHeigth 	= 512.0;
+		}else if( 3 == accuracy ){
+			dstWidth 	= 1024.0;
+			dstHeigth 	= 768.0;
+		}else if( 4 == accuracy ){
+			dstWidth 	= 1280.0;
+			dstHeigth 	= 720.0;
+		}else{
+			dstWidth 	= 640.0;
+			dstHeigth 	= 512.0;	
+		}
+	}else if(srcwidth<1280){
+		if( 0 == accuracy ){
+			dstWidth 	= 480.0;
+			dstHeigth 	= 320.0;
+		}else if( 1 == accuracy ){
+			dstWidth 	= 640.0;
+			dstHeigth 	= 480.0;
+		}else if( 2 == accuracy ){
+			dstWidth 	= 640.0;
+			dstHeigth 	= 512.0;
+		}else if( 3 == accuracy ){
+			dstWidth 	= 720.0;
+			dstHeigth 	= 576.0;
+		}else{
+			dstWidth 	= 640.0;
+			dstHeigth 	= 512.0;	
+		}
+	}
+
+
 	CV_Assert(chId	< DETECTOR_NUM);
 	if( !src.empty() ){
 
