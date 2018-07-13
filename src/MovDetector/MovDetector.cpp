@@ -15,6 +15,7 @@ CMoveDetector::CMoveDetector()
 	m_bExit	 = FALSE;
 	for(i=0; i<DETECTOR_NUM; i++){
 		m_warnRoiVec[i].clear();
+		m_warnRoiVec_bak[i].clear();
 		m_warnLostTarget[i].clear();
 		m_warnInvadeTarget[i].clear();
 		m_movTarget[i].clear();
@@ -119,6 +120,7 @@ int CMoveDetector::destroy()
 	}
 	for(i=0; i<DETECTOR_NUM; i++){
 		m_warnRoiVec[i].clear();
+		m_warnRoiVec_bak[i].clear();
 		m_warnLostTarget[i].clear();
 		m_warnInvadeTarget[i].clear();
 		m_movTarget[i].clear();
@@ -242,9 +244,13 @@ void	CMoveDetector::setNFrames(int nframes, int chId /*= 0*/)
 void CMoveDetector::setFrame(cv::Mat	src ,int srcwidth , int srcheight ,int chId,int accuracy/*2*/,int inputArea/*8*/,int inputThreshold/*30*/)
 {
 	ASSERT( 1 == src.channels());
+	ASSERT(chId >= 0 && chId < DETECTOR_NUM);
+	//UInt32 t1 = OSA_getCurTimeInMsec();
 	int state = 0;
-	if( !frameidx[chId] ){
-		if(m_warnRoiVec[chId].size() < 2){
+	std::vector<cv::Point>::iterator ptmp;
+
+	if(!frameidx[chId]){
+		if(m_warnRoiVec[chId].size() < 3){
 			std::vector<cv::Point> polyWarnRoi ;
 			polyWarnRoi.resize(4);
 			polyWarnRoi[0]	= cv::Point(0,0);
@@ -252,9 +258,15 @@ void CMoveDetector::setFrame(cv::Mat	src ,int srcwidth , int srcheight ,int chId
 			polyWarnRoi[2]	= cv::Point(srcwidth,srcheight);
 			polyWarnRoi[3]	= cv::Point(0,srcheight);
 			this->setWarningRoi(polyWarnRoi,chId);	
+		}else{
+			int num = m_warnRoiVec[chId].size();
+			for(ptmp = m_warnRoiVec[chId].begin();ptmp != m_warnRoiVec[chId].end();ptmp++){
+				ASSERT((*ptmp).x <= srcwidth && (*ptmp).x >= 0);
+				ASSERT((*ptmp).y <= srcheight && (*ptmp).y >= 0);
+			}
 		}
 	}
-	
+	//printf("delta t1 = %d \n",OSA_getCurTimeInMsec() - t1);
 	float dstWidth ,dstHeigth;
 	cv::Mat gray;
 	if( srcwidth*srcheight*2.0/3.0 < cv::contourArea(m_warnRoiVec[chId]) ){	
@@ -330,12 +342,15 @@ void CMoveDetector::setFrame(cv::Mat	src ,int srcwidth , int srcheight ,int chId
 			memcpy(gray.data+(j - boundRect.y)*gray.cols,src.data+j*src.cols,gray.cols);
 		}	
 	}
+	//printf("delta t2 = %d \n",OSA_getCurTimeInMsec() - t1);
 
 	CV_Assert(chId	< DETECTOR_NUM);
 	if( !src.empty() ){
 
 	#if 1
 		cv::blur(gray, frame[chId],cv::Size(3,3));
+	
+	//printf("delta t3 = %d \n",OSA_getCurTimeInMsec() - t1);
 	#else
 		src.copyTo(frame[chId]);
 	#endif
@@ -345,7 +360,8 @@ void CMoveDetector::setFrame(cv::Mat	src ,int srcwidth , int srcheight ,int chId
 			processDone[chId] = false;
 			m_postDetect[chId].InitializedMD(gray.cols, gray.rows>>1, gray.cols);
 			m_postDetect2[chId].InitializedMD(gray.cols,gray.rows>>1, gray.cols);
-			OSA_tskSendMsg(&m_maskDetectTsk[chId], NULL, (Uint16)chId, NULL, 0);
+			OSA_tskSendMsg(&m_maskDetectTsk[chId], NULL, (Uint16)chId, NULL, 0);	
+			//printf("delta t4 = %d \n",OSA_getCurTimeInMsec() - t1);
 		}
 	}
 }
@@ -372,6 +388,7 @@ void	CMoveDetector::clearWarningRoi(int chId	/*= 0*/)
 {
 	CV_Assert(chId	< DETECTOR_NUM);
 	m_warnRoiVec[chId].clear();
+	m_warnRoiVec_bak[chId].clear();
 }
 
 void	CMoveDetector::setTrkThred(TRK_THRED	trkThred,	int chId/*	= 0*/)
@@ -590,7 +607,8 @@ void CMoveDetector::maskDetectProcess(OSA_MsgHndl *pMsg)
 		}
 		if(frame[chId].cols != m_BKWidth[chId] || frame[chId].rows != m_BKHeight[chId]){
 			if(model[chId]!= NULL)	{
-				delete model[chId];
+				libvibeModel_Sequential_Free(model[chId]);
+				//delete model[chId];
 				model[chId]= NULL;
 			}
 		}

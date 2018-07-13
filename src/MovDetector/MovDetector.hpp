@@ -99,6 +99,7 @@ public:
 	BOOL			m_bExit;
 
 	std::vector<cv::Point2i>		m_warnRoiVec[DETECTOR_NUM];
+	std::vector<cv::Point2i>		m_warnRoiVec_bak[DETECTOR_NUM];
 	int area[DETECTOR_NUM];
 	int threshold[DETECTOR_NUM];
 	vibeModel_Sequential_t *model[DETECTOR_NUM];
