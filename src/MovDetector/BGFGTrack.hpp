@@ -30,7 +30,7 @@ public:
 	TRK_RECT_INFO		m_warnTarget[SAMPLE_NUMBER];
 	TRK_RECT_INFO		m_warnTargetBK[SAMPLE_NUMBER];
 
-	CKalman* m_pKalmanProc;
+	CKalman_mv* m_pKalmanProc;
 	double*  m_pMeasure;
 	double*  m_pControl;
 

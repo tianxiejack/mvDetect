@@ -3,7 +3,7 @@
 
 using namespace cv;
 
-namespace OurMogBgs{
+namespace OurMogBgs_mv{
 /*
  Interface of Gaussian mixture algorithm from:
 

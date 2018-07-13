@@ -7,11 +7,11 @@
 #define BOOL		bool
 
 
-class CKalman
+class CKalman_mv
 {
 public:
-    CKalman(); 
-	~CKalman();
+    CKalman_mv(); 
+	~CKalman_mv();
 	int  KalmanOpen(int D, int M, int C );
 	void KalmanClose();
 	void KalmanInitParam(int x_centre, int y_centre, double DeltaT);

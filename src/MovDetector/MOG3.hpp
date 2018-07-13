@@ -4,7 +4,7 @@
 
 using namespace cv;
 
-namespace OurMogBgs{
+namespace OurMogBgs_mv{
 
 	class CV_EXPORTS_W BackgroundSubtractor : public Algorithm
 	{

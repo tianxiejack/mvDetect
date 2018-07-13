@@ -18,7 +18,7 @@
 
 using namespace cv;
 using namespace std;
-using namespace OurMogBgs;
+using namespace OurMogBgs_mv;
 
 
 #define		BGFG_CR
@@ -44,11 +44,11 @@ typedef struct _mog2_para_t{
 }MOG2_PARAM;
 
 
-class CMoveDetector	:	public CMvDectInterface
+class CMoveDetector_mv	:	public CMvDectInterface
 {
 public:
-	CMoveDetector();
-	virtual	~CMoveDetector();
+	CMoveDetector_mv();
+	virtual	~CMoveDetector_mv();
 #ifdef		BGFG_CR
 	void	setDetectShadows(bool	bShadow,	int chId	= 0);
 	void	setHistory(int nHistory,	int chId	= 0);
@@ -119,7 +119,7 @@ protected:
 	unsigned int m_DetectCount;
 	static int videoProcess_TskFncMaskDetect(OSA_TskHndl *pTsk, OSA_MsgHndl *pMsg, Uint32 curState )
 	{
-		((CMoveDetector*)pTsk->appData)->maskDetectProcess(pMsg);
+		((CMoveDetector_mv*)pTsk->appData)->maskDetectProcess(pMsg);
 		return 0;
 	}
 	void maskDetectProcess(OSA_MsgHndl *pMsg);

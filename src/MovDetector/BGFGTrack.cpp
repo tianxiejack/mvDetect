@@ -32,7 +32,7 @@ void	CBGFGTracker::InitCBFG(	int x0, int y0, double DeltaT,int DP, int MP, int C
 	}
 
 	if (m_pKalmanProc == NULL){
-		m_pKalmanProc = new CKalman();
+		m_pKalmanProc = new CKalman_mv();
 		if ( m_pKalmanProc == NULL){
 			m_bInited = FALSE;
 			return;

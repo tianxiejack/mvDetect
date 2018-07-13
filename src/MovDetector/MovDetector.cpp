@@ -9,7 +9,7 @@ using namespace cv;
 using namespace std;
 
 
-CMoveDetector::CMoveDetector()
+CMoveDetector_mv::CMoveDetector_mv()
 {
 	int	i;
 	m_bExit	 = FALSE;
@@ -44,12 +44,12 @@ CMoveDetector::CMoveDetector()
 	resetFlag = false;
 }
 
-CMoveDetector::~CMoveDetector()
+CMoveDetector_mv::~CMoveDetector_mv()
 {
 	destroy();
 }
 
-int CMoveDetector::creat(int history /*= 500*/,  float varThreshold /*= 16*/, bool bShadowDetection /*=true*/)
+int CMoveDetector_mv::creat(int history /*= 500*/,  float varThreshold /*= 16*/, bool bShadowDetection /*=true*/)
 {
 	int	i;
 	//initModule_video();
@@ -89,7 +89,7 @@ int CMoveDetector::creat(int history /*= 500*/,  float varThreshold /*= 16*/, bo
 	return	0;
 }
 
-int CMoveDetector::init(LPNOTIFYFUNC	notifyFunc, void *context)
+int CMoveDetector_mv::init(LPNOTIFYFUNC	notifyFunc, void *context)
 {
 	int	i, result = OSA_SOK;
 
@@ -103,7 +103,7 @@ int CMoveDetector::init(LPNOTIFYFUNC	notifyFunc, void *context)
 	return	result;
 }
 
-int CMoveDetector::destroy()
+int CMoveDetector_mv::destroy()
 {
 	int	i,	rtn = OSA_SOK;
 	m_bExit = TRUE;
@@ -157,35 +157,35 @@ int CMoveDetector::destroy()
 }
 
 #ifdef		BGFG_CR
-void	CMoveDetector::setDetectShadows(bool	bShadow,	int chId/*	= 0*/)
+void	CMoveDetector_mv::setDetectShadows(bool	bShadow,	int chId/*	= 0*/)
 {
 	if (fgbg[chId] != NULL){
 		fgbg[chId]->setDetectShadows( bShadow);
 	}
 }
 
-void	CMoveDetector::setShadowValue(int value,	int chId	/*= 0*/)
+void	CMoveDetector_mv::setShadowValue(int value,	int chId	/*= 0*/)
 {
 	if (fgbg[chId] != NULL){
 		fgbg[chId]->setShadowValue( value);
 	}
 }
 
-void	CMoveDetector::setHistory(int nHistory,	int chId/*	= 0*/)
+void	CMoveDetector_mv::setHistory(int nHistory,	int chId/*	= 0*/)
 {
 	if (fgbg[chId] != NULL){
 		fgbg[chId]->setHistory(nHistory);
 	}
 }
 
-void	CMoveDetector::setVarThreshold(double varThreshold,	int chId/*	= 0*/)
+void	CMoveDetector_mv::setVarThreshold(double varThreshold,	int chId/*	= 0*/)
 {
 	if (fgbg[chId] != NULL){
 		fgbg[chId]->setVarThreshold(varThreshold);
 	}
 }
 
-void	CMoveDetector::setVarThredGen(float	varThredGen,	int chId/*	= 0*/)
+void	CMoveDetector_mv::setVarThredGen(float	varThredGen,	int chId/*	= 0*/)
 {
 
 	if (fgbg[chId] != NULL){
@@ -193,42 +193,42 @@ void	CMoveDetector::setVarThredGen(float	varThredGen,	int chId/*	= 0*/)
 	}
 }
 
-void	CMoveDetector::setBackgroundRatio(float ratio,	int chId/*	= 0*/)
+void	CMoveDetector_mv::setBackgroundRatio(float ratio,	int chId/*	= 0*/)
 {
 	if (fgbg[chId] != NULL){
 		fgbg[chId]->setBackgroundRatio(ratio);
 	}
 }
 
-void	CMoveDetector::setCompRedThred(float fct,	int chId/*	= 0*/)
+void	CMoveDetector_mv::setCompRedThred(float fct,	int chId/*	= 0*/)
 {
 	if (fgbg[chId] != NULL){
 		fgbg[chId]->setComplexityReductionThreshold(fct);
 	}
 }
 
-void	CMoveDetector::setNMixtures(int nmix,	int chId/*	= 0*/)
+void	CMoveDetector_mv::setNMixtures(int nmix,	int chId/*	= 0*/)
 {
 	if (fgbg[chId] != NULL){
 		fgbg[chId]->setNMixtures(nmix);
 	}
 }
 
-void	CMoveDetector::setVarInit(float initvalue,	int chId/*	= 0*/)
+void	CMoveDetector_mv::setVarInit(float initvalue,	int chId/*	= 0*/)
 {
 	if (fgbg[chId] != NULL){
 		fgbg[chId]->setVarInit(initvalue);
 	}
 }
 
-void	CMoveDetector::setShadowThreshold(double threshold,	int chId	/*= 0*/)
+void	CMoveDetector_mv::setShadowThreshold(double threshold,	int chId	/*= 0*/)
 {
 	if (fgbg[chId] != NULL){
 		fgbg[chId]->setShadowThreshold(threshold);
 	}
 }
 
-void	CMoveDetector::setNFrames(int nframes, int chId /*= 0*/)
+void	CMoveDetector_mv::setNFrames(int nframes, int chId /*= 0*/)
 {
 	if (fgbg[chId] != NULL){
 		fgbg[chId]->setDetectNFrames(nframes);
@@ -237,7 +237,7 @@ void	CMoveDetector::setNFrames(int nframes, int chId /*= 0*/)
 
 #endif
 
-void CMoveDetector::setFrame(cv::Mat	src ,int srcwidth , int srcheight ,int chId,int accuracy/*2*/,int inputArea/*8*/,int inputThreshold/*30*/)
+void CMoveDetector_mv::setFrame(cv::Mat	src ,int srcwidth , int srcheight ,int chId,int accuracy/*2*/,int inputArea/*8*/,int inputThreshold/*30*/)
 {
 	ASSERT( 1 == src.channels());
 	ASSERT(chId >= 0 && chId < DETECTOR_NUM);
@@ -362,7 +362,7 @@ void CMoveDetector::setFrame(cv::Mat	src ,int srcwidth , int srcheight ,int chId
 }
 
 
-void	CMoveDetector::setWarningRoi(std::vector<cv::Point2i>	warnRoi,	int chId	/*= 0*/)
+void	CMoveDetector_mv::setWarningRoi(std::vector<cv::Point2i>	warnRoi,	int chId	/*= 0*/)
 {
 	CV_Assert(chId	< DETECTOR_NUM);
 	int	k,	npoint	= warnRoi.size();
@@ -379,39 +379,39 @@ void	CMoveDetector::setWarningRoi(std::vector<cv::Point2i>	warnRoi,	int chId	/*=
 	}
 }
 
-void	CMoveDetector::clearWarningRoi(int chId	/*= 0*/)
+void	CMoveDetector_mv::clearWarningRoi(int chId	/*= 0*/)
 {
 	CV_Assert(chId	< DETECTOR_NUM);
 	m_warnRoiVec[chId].clear();
 	m_warnRoiVec_bak[chId].clear();
 }
 
-void	CMoveDetector::setTrkThred(TRK_THRED	trkThred,	int chId/*	= 0*/)
+void	CMoveDetector_mv::setTrkThred(TRK_THRED	trkThred,	int chId/*	= 0*/)
 {
 	CV_Assert(chId	< DETECTOR_NUM);
 	m_postDetect[chId].setTrkThred(trkThred);
 	m_postDetect2[chId].setTrkThred(trkThred);
 }
 
-void	CMoveDetector::setDrawOSD(cv::Mat	dispOSD, int chId /*= 0*/)
+void	CMoveDetector_mv::setDrawOSD(cv::Mat	dispOSD, int chId /*= 0*/)
 {
 	CV_Assert(chId	< DETECTOR_NUM);
 	disframe[chId]	= dispOSD;
 }
 
-void	CMoveDetector::setWarnMode(WARN_MODE	warnMode,	int chId /*= 0*/)
+void	CMoveDetector_mv::setWarnMode(WARN_MODE	warnMode,	int chId /*= 0*/)
 {
 	CV_Assert(chId	< DETECTOR_NUM);
 	m_warnMode[chId]	= warnMode;
 }
 
-void	CMoveDetector::enableSelfDraw(bool	bEnable, int chId/* = 0*/)
+void	CMoveDetector_mv::enableSelfDraw(bool	bEnable, int chId/* = 0*/)
 {
 	CV_Assert(chId	< DETECTOR_NUM);
 	m_bSelfDraw[chId] = bEnable;
 }
 
-void   CMoveDetector::setROIScalXY(float scaleX /*= 1.0*/, float scaleY /*= 1.0*/, int chId /*= 0*/)
+void   CMoveDetector_mv::setROIScalXY(float scaleX /*= 1.0*/, float scaleY /*= 1.0*/, int chId /*= 0*/)
 {
 	CV_Assert(chId	< DETECTOR_NUM);
 	m_scaleX[chId] = scaleX;
@@ -430,31 +430,31 @@ static void _copyTarget(std::vector<TRK_RECT_INFO> srcTarget, std::vector<TRK_RE
 	}
 }
 
-void	CMoveDetector::getLostTarget(std::vector<TRK_RECT_INFO>	&resTarget,	int chId /*= 0*/)
+void	CMoveDetector_mv::getLostTarget(std::vector<TRK_RECT_INFO>	&resTarget,	int chId /*= 0*/)
 {
 	CV_Assert(chId	<DETECTOR_NUM);
 	_copyTarget(m_warnLostTarget[chId], resTarget);
 }
 
-void	CMoveDetector::getInvadeTarget(std::vector<TRK_RECT_INFO>	&resTarget,	int chId /*= 0*/)
+void	CMoveDetector_mv::getInvadeTarget(std::vector<TRK_RECT_INFO>	&resTarget,	int chId /*= 0*/)
 {
 	CV_Assert(chId	<DETECTOR_NUM);
 	_copyTarget(m_warnInvadeTarget[chId], resTarget);
 }
 
-void	CMoveDetector::getMoveTarget(std::vector<TRK_RECT_INFO>	&resTarget,	int chId /*= 0*/)
+void	CMoveDetector_mv::getMoveTarget(std::vector<TRK_RECT_INFO>	&resTarget,	int chId /*= 0*/)
 {
 	CV_Assert(chId	<DETECTOR_NUM);
 	_copyTarget(m_movTarget[chId], resTarget);
 }
 
-void	CMoveDetector::getBoundTarget(std::vector<TRK_RECT_INFO>	&resTarget,	int chId /*= 0*/)
+void	CMoveDetector_mv::getBoundTarget(std::vector<TRK_RECT_INFO>	&resTarget,	int chId /*= 0*/)
 {
 	CV_Assert(chId	<DETECTOR_NUM);
 	_copyTarget(m_edgeTarget[chId], resTarget);
 }
 
-void	CMoveDetector::getWarnTarget(std::vector<TRK_RECT_INFO>	&resTarget,	int chId	/*= 0*/)
+void	CMoveDetector_mv::getWarnTarget(std::vector<TRK_RECT_INFO>	&resTarget,	int chId	/*= 0*/)
 {
 	CV_Assert(chId	<DETECTOR_NUM);
 		_copyTarget(m_warnTarget[chId], resTarget);
@@ -471,14 +471,14 @@ static void CopyTrkTarget(CPostDetect *pMVObj,  std::vector<TRK_RECT_INFO> &trkT
 }
 
 
-void CMoveDetector::mvPause()
+void CMoveDetector_mv::mvPause()
 {
 	if(!resetFlag)
 		resetFlag = true;
 }
 
 #if 0
-void CMoveDetector::maskDetectProcess(OSA_MsgHndl *pMsg)
+void CMoveDetector_mv::maskDetectProcess(OSA_MsgHndl *pMsg)
 {
 		int chId;
 		chId	=	pMsg->cmd ;
@@ -567,7 +567,7 @@ void CMoveDetector::maskDetectProcess(OSA_MsgHndl *pMsg)
 
 }
 #else
-void CMoveDetector::maskDetectProcess(OSA_MsgHndl *pMsg)
+void CMoveDetector_mv::maskDetectProcess(OSA_MsgHndl *pMsg)
 {
 		int chId;
 		chId	=	pMsg->cmd ;

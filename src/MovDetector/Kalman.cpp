@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <memory.h>
 
-CKalman::CKalman()
+CKalman_mv::CKalman_mv()
 {
 	state_pre = NULL;
 	state_post = NULL;
@@ -31,18 +31,18 @@ CKalman::CKalman()
 	Kk_H_Xk = NULL;
 	H_Pk = NULL;
 	Kk_H_Pk = NULL;
-	deltat = 0.04; // ÊÓÆµ²ÉÑùÊ±¼ä¼ä¸ô
+	deltat = 0.04; // ï¿½ï¿½Æµï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½
 
 	m_bInited = FALSE;
 }
 
-CKalman::~CKalman()
+CKalman_mv::~CKalman_mv()
 {
 	KalmanClose();
 	m_bInited = FALSE;
 }
 
-int CKalman::KalmanOpen(int D, int M, int C )
+int CKalman_mv::KalmanOpen(int D, int M, int C )
 {
 	if( D <= 0 || M <= 0 ){
 		//AfxMessageBox("state and measurement vectors must have positive number of dimensions! ");	
@@ -159,7 +159,7 @@ int CKalman::KalmanOpen(int D, int M, int C )
 	return 0;
 }
 
-void CKalman::KalmanClose()
+void CKalman_mv::KalmanClose()
 {
 	if(state_pre != NULL){
 		delete [] state_pre ;        state_pre = NULL;
@@ -238,51 +238,51 @@ void CKalman::KalmanClose()
 }
 
 #if 0
-void CKalman::KalmanInitParam(int x_centre, int y_centre, double DeltaT)
+void CKalman_mv::KalmanInitParam(int x_centre, int y_centre, double DeltaT)
 {
 	if (!m_bInited){
 		return;
 	}
 	int x, y;
-	/* ¹ý³Ì¼¤ÀøÔëÉùÐ­·½²î¾ØÕó */
+	/* ï¿½ï¿½Ì¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð­ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ */
 	for ( y = 0; y < DP; y++ ){
 		for ( x = 0; x < DP; x++ ){
 			process_noise_cov[y*DP+x] = 0.0;
 		}
 	}
 	for ( y = 0; y < DP; y++ ){
-		process_noise_cov[y*DP+y] = 1.0;  /* Ð­·½²î¶¼Îª1.0£¬ÇÒÏà»¥¶ÀÁ¢ */
+		process_noise_cov[y*DP+y] = 1.0;  /* Ð­ï¿½ï¿½ï¿½î¶¼Îª1.0ï¿½ï¿½ï¿½ï¿½ï¿½à»¥ï¿½ï¿½ï¿½ï¿½ */
 	}
-	/* ¹Û²âÔëÉùÐ­·½²î¾ØÕó */
+	/* ï¿½Û²ï¿½ï¿½ï¿½ï¿½ï¿½Ð­ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ */
 	for ( y = 0; y < MP; y++ ){
 		for ( x = 0; x < MP; x++ ){
 			measurement_noise_cov[y*MP+x] = 0.0;
 		}
 	}
 	for ( y = 0; y < MP; y++ ){
-		measurement_noise_cov[y*MP+y] = 1.0;  /* Ð­·½²î¶¼Îª1.0£¬ÇÒÏà»¥¶ÀÁ¢ */
+		measurement_noise_cov[y*MP+y] = 1.0;  /* Ð­ï¿½ï¿½ï¿½î¶¼Îª1.0ï¿½ï¿½ï¿½ï¿½ï¿½à»¥ï¿½ï¿½ï¿½ï¿½ */
 	}
-	/* ×´Ì¬²âÁ¿Îó²îÐ­·½²î */
+	/* ×´Ì¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð­ï¿½ï¿½ï¿½ï¿½ */
 	for ( y = 0; y < DP; y++ ){
 		for ( x = 0; x < DP; x++ ){
 			error_cov_post[y*DP+x] = 0.0;
 		}
 	}
 	for ( y = 0; y < DP; y++ ){
-		error_cov_post[y*DP+y] = 10.0;  /* ¶Ô½Ç³õÊ¼Ð­·½²î¶¼Îª10£¬ÇÒÏà»¥¶ÀÁ¢ */
+		error_cov_post[y*DP+y] = 10.0;  /* ï¿½Ô½Ç³ï¿½Ê¼Ð­ï¿½ï¿½ï¿½î¶¼Îª10ï¿½ï¿½ï¿½ï¿½ï¿½à»¥ï¿½ï¿½ï¿½ï¿½ */
 	}
-	/* ×´Ì¬×ªÒÆÕó */
+	/* ×´Ì¬×ªï¿½ï¿½ï¿½ï¿½ */
 	for ( y = 0; y < DP; y++ ){
 		for ( x = 0; x < DP; x++ ){
 			transition_matrix[y*DP+x] = 0.0;
 		}
 	}
 	for ( y = 0; y < DP; y++ ){
-		transition_matrix[y*DP+y] = 1.0;  /* ¶Ô½ÇÎª1 */
+		transition_matrix[y*DP+y] = 1.0;  /* ï¿½Ô½ï¿½Îª1 */
 	}
 	transition_matrix[0*DP+2] = deltat;
 	transition_matrix[1*DP+3] = deltat;
-	/* ¹Û²âÕó£º×´Ì¬Á¿µ½¹Û²âÁ¿µÄ×ªÒÆ¾ØÕó */
+	/* ï¿½Û²ï¿½ï¿½ï¿½×´Ì¬ï¿½ï¿½ï¿½ï¿½ï¿½Û²ï¿½ï¿½ï¿½ï¿½ï¿½×ªï¿½Æ¾ï¿½ï¿½ï¿½ */
 	for ( y = 0; y < MP; y++ ){
 		for ( x = 0; x < DP; x++ ){
 			measurement_matrix[y*DP+x] = 0.0; 
@@ -294,11 +294,11 @@ void CKalman::KalmanInitParam(int x_centre, int y_centre, double DeltaT)
 		measurement_matrix[y*DP+y] = 1.0;
 	}
 
-	// ¹Û²âÁ¿£¬ÅÅÁÐË³Ðò£ºx, y
+	// ï¿½Û²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ë³ï¿½ï¿½x, y
 	measure_param[0] = (float)x_centre;
 	measure_param[1] = (float)y_centre;
-	/* ³õÊ¼»¯ÔË¶¯ËÙ¶È¡¢Î»ÖÃ¡¢°ë´°¿í¸ß¡¢³ß¶È±ä»¯ËÙ¶ÈµÈ×´Ì¬Á¿ */
-    // ×´Ì¬Á¿£¬ÅÅÁÐË³Ðò£ºx, y, xv, yv
+	/* ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½Ë¶ï¿½ï¿½Ù¶È¡ï¿½Î»ï¿½Ã¡ï¿½ï¿½ë´°ï¿½ï¿½ß¡ï¿½ï¿½ß¶È±ä»¯ï¿½Ù¶Èµï¿½×´Ì¬ï¿½ï¿½ */
+    // ×´Ì¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ë³ï¿½ï¿½x, y, xv, yv
 	state_post[0] = (float)x_centre;
 	state_post[1] = (float)y_centre;
 	state_post[2] = 0.0;
@@ -309,13 +309,13 @@ void CKalman::KalmanInitParam(int x_centre, int y_centre, double DeltaT)
 
 #else
 
-void CKalman::KalmanInitParam(int x_centre, int y_centre, double DeltaT)
+void CKalman_mv::KalmanInitParam(int x_centre, int y_centre, double DeltaT)
 {
 	if (!m_bInited){
 		return;
 	}
 	int x, y;
-	/* ¹ý³Ì¼¤ÀøÔëÉùÐ­·½²î¾ØÕó */
+	/* ï¿½ï¿½Ì¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð­ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ */
 	for ( y = 0; y < DP; y++ ){
 		for ( x = 0; x < DP; x++ ){
 			process_noise_cov[y*DP+x] = 0.0;
@@ -327,7 +327,7 @@ void CKalman::KalmanInitParam(int x_centre, int y_centre, double DeltaT)
 	process_noise_cov[2*DP+2] = 0.00001;//9.0; 
 	process_noise_cov[3*DP+3] = 0.00001;//9.0; 
 
-	/* ¹Û²âÔëÉùÐ­·½²î¾ØÕó */
+	/* ï¿½Û²ï¿½ï¿½ï¿½ï¿½ï¿½Ð­ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ */
 	for ( y = 0; y < MP; y++ ){
 		for ( x = 0; x < MP; x++ ){
 			measurement_noise_cov[y*MP+x] = 0.0;
@@ -337,27 +337,27 @@ void CKalman::KalmanInitParam(int x_centre, int y_centre, double DeltaT)
 	measurement_noise_cov[0*MP+0] = 0.25;//4.0;
 	measurement_noise_cov[1*MP+1] = 0.25;//4.0;
 	
-	/* ×´Ì¬²âÁ¿Îó²îÐ­·½²î */
+	/* ×´Ì¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð­ï¿½ï¿½ï¿½ï¿½ */
 	for ( y = 0; y < DP; y++ ){
 		for ( x = 0; x < DP; x++ ){
 			error_cov_post[y*DP+x] = 0.0;
 		}
 	}
 	for ( y = 0; y < DP; y++ ){
-		error_cov_post[y*DP+y] = 1.0;  /* ¶Ô½Ç³õÊ¼Ð­·½²î¶¼Îª10£¬ÇÒÏà»¥¶ÀÁ¢ */
+		error_cov_post[y*DP+y] = 1.0;  /* ï¿½Ô½Ç³ï¿½Ê¼Ð­ï¿½ï¿½ï¿½î¶¼Îª10ï¿½ï¿½ï¿½ï¿½ï¿½à»¥ï¿½ï¿½ï¿½ï¿½ */
 	}
-	/* ×´Ì¬×ªÒÆÕó */
+	/* ×´Ì¬×ªï¿½ï¿½ï¿½ï¿½ */
 	for ( y = 0; y < DP; y++ ){
 		for ( x = 0; x < DP; x++ ){
 			transition_matrix[y*DP+x] = 0.0;
 		}
 	}
 	for ( y = 0; y < DP; y++ ){
-		transition_matrix[y*DP+y] = 1.0;  /* ¶Ô½ÇÎª1 */
+		transition_matrix[y*DP+y] = 1.0;  /* ï¿½Ô½ï¿½Îª1 */
 	}
 	transition_matrix[0*DP+2] = DeltaT;
 	transition_matrix[1*DP+3] = DeltaT;
-	/* ¹Û²âÕó£º×´Ì¬Á¿µ½¹Û²âÁ¿µÄ×ªÒÆ¾ØÕó */
+	/* ï¿½Û²ï¿½ï¿½ï¿½×´Ì¬ï¿½ï¿½ï¿½ï¿½ï¿½Û²ï¿½ï¿½ï¿½ï¿½ï¿½×ªï¿½Æ¾ï¿½ï¿½ï¿½ */
 	for ( y = 0; y < MP; y++ ){
 		for ( x = 0; x < DP; x++ ){
 			measurement_matrix[y*DP+x] = 0.0; 
@@ -367,11 +367,11 @@ void CKalman::KalmanInitParam(int x_centre, int y_centre, double DeltaT)
 		measurement_matrix[y*DP+y] = 1.0;
 	}
 	
-	// ¹Û²âÁ¿£¬ÅÅÁÐË³Ðò£ºx, y
+	// ï¿½Û²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ë³ï¿½ï¿½x, y
 	measure_param[0] = (float)x_centre;
 	measure_param[1] = (float)y_centre;
-	/* ³õÊ¼»¯ÔË¶¯ËÙ¶È¡¢Î»ÖÃ¡¢°ë´°¿í¸ß¡¢³ß¶È±ä»¯ËÙ¶ÈµÈ×´Ì¬Á¿ */
-    // ×´Ì¬Á¿£¬ÅÅÁÐË³Ðò£ºx, y, xv, yv
+	/* ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½Ë¶ï¿½ï¿½Ù¶È¡ï¿½Î»ï¿½Ã¡ï¿½ï¿½ë´°ï¿½ï¿½ß¡ï¿½ï¿½ß¶È±ä»¯ï¿½Ù¶Èµï¿½×´Ì¬ï¿½ï¿½ */
+    // ×´Ì¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ë³ï¿½ï¿½x, y, xv, yv
 	state_post[0] = (float)x_centre;
 	state_post[1] = (float)y_centre;
 	state_post[2] = 0.0;
@@ -381,7 +381,7 @@ void CKalman::KalmanInitParam(int x_centre, int y_centre, double DeltaT)
 }
 #endif
 
-void CKalman::KalmanPredict( double * control )//control-->u(k)
+void CKalman_mv::KalmanPredict( double * control )//control-->u(k)
 {
 	if (!m_bInited){
 		return;
@@ -406,7 +406,7 @@ void CKalman::KalmanPredict( double * control )//control-->u(k)
 	MatrixAddition(APA_T, process_noise_cov, DP, DP, error_cov_pre);
 }
 	
-void CKalman::KalmanCorrect( double * measurement )
+void CKalman_mv::KalmanCorrect( double * measurement )
 {
 	if (!m_bInited){
 		return;
@@ -453,7 +453,7 @@ void CKalman::KalmanCorrect( double * measurement )
 	MatrixSubtraction( error_cov_pre , Kk_H_Pk , DP ,DP , error_cov_post);
 }
 
-void CKalman::MatrixMultiply(double* A, double* B, int m, int p, int n, double* C)
+void CKalman_mv::MatrixMultiply(double* A, double* B, int m, int p, int n, double* C)
 {
 	// A = input matrix (m x p)
 	// B = input matrix (p x n)
@@ -475,7 +475,7 @@ void CKalman::MatrixMultiply(double* A, double* B, int m, int p, int n, double* 
 	}
 }
 
-void CKalman::MatrixAddition(double* A, double* B, int m, int n, double* C)
+void CKalman_mv::MatrixAddition(double* A, double* B, int m, int n, double* C)
 {
 	// A = input matrix (m x n)
 	// B = input matrix (m x n)
@@ -492,7 +492,7 @@ void CKalman::MatrixAddition(double* A, double* B, int m, int n, double* C)
 	}
 }
 
-void CKalman::MatrixSubtraction(double* A, double* B, int m, int n, double* C)
+void CKalman_mv::MatrixSubtraction(double* A, double* B, int m, int n, double* C)
 {
 	// A = input matrix (m x n)
 	// B = input matrix (m x n)
@@ -509,7 +509,7 @@ void CKalman::MatrixSubtraction(double* A, double* B, int m, int n, double* C)
 	}
 }
 
-void CKalman::MatrixTranspose(double* A, int m, int n, double* C)
+void CKalman_mv::MatrixTranspose(double* A, int m, int n, double* C)
 {
 	// A = input matrix (m x n)
 	// m = number of rows in A
@@ -525,7 +525,7 @@ void CKalman::MatrixTranspose(double* A, int m, int n, double* C)
 	}
 }
 
-int CKalman::MatrixInversion(double* A, int n, double* AInverse)
+int CKalman_mv::MatrixInversion(double* A, int n, double* AInverse)
 {
 	// A = input matrix (n x n)
 	// n = dimension of A 
@@ -608,16 +608,16 @@ int CKalman::MatrixInversion(double* A, int n, double* AInverse)
 }
 
 /*
-	ÓÃÈ«Ñ¡Ö÷ÔªGauss-Jordan·¨Çón½×Êµ¾ØÕóAµÄÄæ¾ØÕóA^{-1}
-	ÊäÈë²ÎÊý£º
-	double * A£º     Ô­¾ØÕó£¬ÎªÒ»¸ö·½Õó
-	int n£º          ¾ØÕóÎ¬Êý
-	Êä³ö²ÎÊý£º
-	double * A£º     ÇóµÃµÄÄæ¾ØÕó
-	·µ»ØÖµ£º
-	Èç¹û·µ»Ø±ê¼ÇÎª0£¬±íÊ¾¾ØÕóÆæÒì£»·ñÔò·µ»Ø·Ç0Öµ
+	ï¿½ï¿½È«Ñ¡ï¿½ï¿½ÔªGauss-Jordanï¿½ï¿½ï¿½ï¿½nï¿½ï¿½Êµï¿½ï¿½ï¿½ï¿½Aï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½A^{-1}
+	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	double * Aï¿½ï¿½     Ô­ï¿½ï¿½ï¿½ï¿½ÎªÒ»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	int nï¿½ï¿½          ï¿½ï¿½ï¿½ï¿½Î¬ï¿½ï¿½
+	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	double * Aï¿½ï¿½     ï¿½ï¿½Ãµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	ï¿½ï¿½ï¿½ï¿½Öµï¿½ï¿½
+	ï¿½ï¿½ï¿½Ø±ï¿½ï¿½Îª0ï¿½ï¿½ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ì£»ï¿½ï¿½ï¿½ò·µ»Ø·ï¿½0Öµ
 */
-int CKalman::MatrixBrinv( double * A, int n)
+int CKalman_mv::MatrixBrinv( double * A, int n)
 {
 	int * is, * js, i, j, k, l, u, v;
 	double d,p;
@@ -640,7 +640,7 @@ int CKalman::MatrixBrinv( double * A, int n)
 				}
 			}
 		}
-		if ( d+1.0 == 1.0 ) /* ¾ØÕóÎªÆæÒìÕó */
+		if ( d+1.0 == 1.0 ) /* ï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ */
 		{ 
 			free( is ); 
 			free( js ); 
@@ -724,7 +724,7 @@ int CKalman::MatrixBrinv( double * A, int n)
 	return(1);
 }
 
-void CKalman::MatrixCopy(double *A, double *B, int m, int n)
+void CKalman_mv::MatrixCopy(double *A, double *B, int m, int n)
 {
 	memcpy(A, B, sizeof(double)*m*n);
 }
