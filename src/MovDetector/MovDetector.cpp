@@ -40,8 +40,6 @@ CMoveDetector::CMoveDetector()
 	m_BKWidth[i] = 0;
 	threshold[i] = 0;
 	area[i] = 0;
-	frameidx[i] = 0;
-	processDone[i] = true;
 	}
 	resetFlag = false;
 }
@@ -54,7 +52,7 @@ CMoveDetector::~CMoveDetector()
 int CMoveDetector::creat(int history /*= 500*/,  float varThreshold /*= 16*/, bool bShadowDetection /*=true*/)
 {
 	int	i;
-	initModule_video();
+	//initModule_video();
 	setUseOptimized(true);
 	setNumThreads(4);
 
@@ -153,8 +151,6 @@ int CMoveDetector::destroy()
 		m_BKHeight[i] = 0;
 		threshold[i] = 0;
 		area[i] = 0;
-		frameidx[i] = 0;
-		processDone[i]= false;
 	}
 	resetFlag = false;
 	return rtn;
@@ -249,7 +245,8 @@ void CMoveDetector::setFrame(cv::Mat	src ,int srcwidth , int srcheight ,int chId
 	int state = 0;
 	std::vector<cv::Point>::iterator ptmp;
 
-	if(!frameidx[chId]){
+	//if(model[chId] == NULL)
+	{
 		if(m_warnRoiVec[chId].size() < 3){
 			std::vector<cv::Point> polyWarnRoi ;
 			polyWarnRoi.resize(4);
@@ -355,14 +352,12 @@ void CMoveDetector::setFrame(cv::Mat	src ,int srcwidth , int srcheight ,int chId
 		src.copyTo(frame[chId]);
 	#endif
 		area[chId] = inputArea ;
-		threshold[chId] = inputThreshold;
-		if(processDone[chId]){
-			processDone[chId] = false;
-			m_postDetect[chId].InitializedMD(gray.cols, gray.rows>>1, gray.cols);
-			m_postDetect2[chId].InitializedMD(gray.cols,gray.rows>>1, gray.cols);
-			OSA_tskSendMsg(&m_maskDetectTsk[chId], NULL, (Uint16)chId, NULL, 0);	
-			//printf("delta t4 = %d \n",OSA_getCurTimeInMsec() - t1);
-		}
+		threshold[chId] = inputThreshold;		
+		m_postDetect[chId].InitializedMD(gray.cols, gray.rows>>1, gray.cols);
+		m_postDetect2[chId].InitializedMD(gray.cols,gray.rows>>1, gray.cols);
+		OSA_tskSendMsg(&m_maskDetectTsk[chId], NULL, (Uint16)chId, NULL, 0);	
+		//printf("delta t4 = %d \n",OSA_getCurTimeInMsec() - t1);
+		
 	}
 }
 
@@ -577,10 +572,9 @@ void CMoveDetector::maskDetectProcess(OSA_MsgHndl *pMsg)
 		int chId;
 		chId	=	pMsg->cmd ;
 		CV_Assert(chId < DETECTOR_NUM);
-		if(m_bExit){
-			processDone[chId] = true;
+		if(m_bExit)
 			return;
-		}
+		
 		if(m_warnRoiVec[chId].size() == 0)
 		{
 			m_movTarget[chId].clear();
@@ -592,7 +586,6 @@ void CMoveDetector::maskDetectProcess(OSA_MsgHndl *pMsg)
 			{
 				(*m_notifyFunc)(m_context, chId);
 			}
-			processDone[chId] = true;
 			return;
 		}
 		static bool update_bg_model = true;
@@ -602,13 +595,9 @@ void CMoveDetector::maskDetectProcess(OSA_MsgHndl *pMsg)
 		//	Uint32 t1 = OSA_getCurTimeInMsec() ;
 
 #if 1
-		if(frameidx[chId] < 5){
-			frameidx[chId]++;		
-		}
 		if(frame[chId].cols != m_BKWidth[chId] || frame[chId].rows != m_BKHeight[chId]){
 			if(model[chId]!= NULL)	{
 				libvibeModel_Sequential_Free(model[chId]);
-				//delete model[chId];
 				model[chId]= NULL;
 			}
 		}
@@ -623,11 +612,6 @@ void CMoveDetector::maskDetectProcess(OSA_MsgHndl *pMsg)
 			fgmask[chId] = Mat(frame[chId].rows, frame[chId].cols, CV_8UC1);
 			libvibeModel_Sequential_Segmentation_8u_C1R(model[chId], frame[chId].data, fgmask[chId].data);
 			libvibeModel_Sequential_Update_8u_C1R(model[chId], frame[chId].data, fgmask[chId].data);
-		}
-		if(frameidx[chId] < 3)
-		{
-			processDone[chId] = true;
-			return ;
 		}
 #else
 		frameCount++;
@@ -665,9 +649,9 @@ void CMoveDetector::maskDetectProcess(OSA_MsgHndl *pMsg)
 					offsize.height = (int)((fgmask[chId].rows>>1)*m_scaleY[chId]);
 					m_movTarget[chId].resize(nsize1+nsize2);					
 					CopyTrkTarget(&m_postDetect[chId], m_movTarget[chId], nsize1, 0, cv::Size(0,0));
-					CopyTrkTarget(&m_postDetect2[chId], m_movTarget[chId], nsize2, nsize1, offsize);						
+					CopyTrkTarget(&m_postDetect2[chId], m_movTarget[chId], nsize2, nsize1, offsize);
 				}
-
+				
 				if( m_notifyFunc != NULL )
 				{
 					(*m_notifyFunc)(m_context, chId);
@@ -679,18 +663,15 @@ void CMoveDetector::maskDetectProcess(OSA_MsgHndl *pMsg)
 		for(int i =0;i<DETECTOR_NUM; i++){
 			if(model[i] != NULL){
 			libvibeModel_Sequential_Free(model[i]);
-			//delete model[i];
 			model[i] = NULL;
 		}
 		m_BKWidth[i] = 0;
 		m_BKHeight[i] = 0;
 		threshold[i] = 0;
 		m_movTarget[i].clear();
-		frameidx[i] = 0;
 		}
 		resetFlag = false;
 	}
-	processDone[chId] = true;
 }
 #endif
 

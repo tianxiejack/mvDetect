@@ -104,9 +104,7 @@ public:
 	int threshold[DETECTOR_NUM];
 	vibeModel_Sequential_t *model[DETECTOR_NUM];
 	int m_BKWidth[DETECTOR_NUM], m_BKHeight[DETECTOR_NUM];
-	bool processDone[DETECTOR_NUM];
 	bool resetFlag;
-	unsigned char frameidx[DETECTOR_NUM];
 
 protected:
 

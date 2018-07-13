@@ -500,7 +500,8 @@ void	CPostDetect::MovTargetDetect(float nScalX /*= 1*/, float nScalY /*= 1*/)
 		cv::Rect rect((int)(rc_center.x-recW/2),	(int)(rc_center.y-recH/2),	 recW, recH);
 		double	distance	= cv::pointPolygonTest( polyRoi, rc_center, true );///1.0
 
-		if(distance >0.0){
+		//if(distance >0.0)
+		{
 			TRK_RECT_INFO	curInfo;
 			curInfo.targetRect		=	rect;
 			curInfo.distance		= distance;
@@ -510,6 +511,7 @@ void	CPostDetect::MovTargetDetect(float nScalX /*= 1*/, float nScalY /*= 1*/)
 			curInfo.targetType = TARGET_IN_POLYGON;
 			m_movTargetRec.push_back(curInfo);
 		}
+		//printf("m_movTargetRec size = %d \n",m_movTargetRec.size());
 	}
 }
 
