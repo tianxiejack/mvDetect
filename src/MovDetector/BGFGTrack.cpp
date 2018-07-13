@@ -17,6 +17,7 @@ CBGFGTracker::CBGFGTracker()
 	m_thredParam.totalFrames = 100;
 	m_thredParam.targetSize	= 200;
 	m_thredParam.distRoi = 2.0;
+
 }
 
 CBGFGTracker::~CBGFGTracker()

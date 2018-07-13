@@ -498,7 +498,7 @@ void	CPostDetect::MovTargetDetect(float nScalX /*= 1*/, float nScalY /*= 1*/)
 
 		rc_center	= cv::Point2f((float)(curPattern.lefttop.x +curPattern.rightbottom.x)/2.0, (float)(curPattern.lefttop.y+curPattern.rightbottom.y)/2.0);
 		cv::Rect rect((int)(rc_center.x-recW/2),	(int)(rc_center.y-recH/2),	 recW, recH);
-		double	distance	= 1.;//cv::pointPolygonTest( polyRoi, rc_center, true );
+		double	distance	= cv::pointPolygonTest( polyRoi, rc_center, true );///1.0
 
 		if(distance >0.0){
 			TRK_RECT_INFO	curInfo;

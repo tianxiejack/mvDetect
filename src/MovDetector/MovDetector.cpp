@@ -242,73 +242,94 @@ void	CMoveDetector::setNFrames(int nframes, int chId /*= 0*/)
 void CMoveDetector::setFrame(cv::Mat	src ,int srcwidth , int srcheight ,int chId,int accuracy/*2*/,int inputArea/*8*/,int inputThreshold/*30*/)
 {
 	ASSERT( 1 == src.channels());
-	
-	float dstWidth ,dstHeigth;
-	if(srcwidth >= 1920)
-	{
-		if( 0 == accuracy ){
-			dstWidth 	= 640.0;
-			dstHeigth 	= 480.0;
-		}else if( 1 == accuracy ){
-			dstWidth 	= 720.0;
-			dstHeigth 	= 576.0;
-		}else if( 2 == accuracy ){
-			dstWidth 	= 960.0;
-			dstHeigth 	= 540.0;
-		}else if( 3 == accuracy ){
-			dstWidth 	= 1024.0;
-			dstHeigth 	= 768.0;
-		}else if( 4 == accuracy ){
-			dstWidth 	= 1280.0;
-			dstHeigth 	= 720.0;
-		}else{
-			dstWidth 	= (float)srcwidth;
-			dstHeigth 	= (float)srcheight;	
-		}	
-	}else if(srcwidth >= 1280 && srcwidth < 1920){
-		if( 0 == accuracy ){
-			dstWidth 	= 480.0;
-			dstHeigth 	= 320.0;
-		}else if( 1 == accuracy ){
-			dstWidth 	= 640.0;
-			dstHeigth 	= 480.0;
-		}else if( 2 == accuracy ){
-			dstWidth 	= 640.0;
-			dstHeigth 	= 512.0;
-		}else if( 3 == accuracy ){
-			dstWidth 	= 1024.0;
-			dstHeigth 	= 768.0;
-		}else if( 4 == accuracy ){
-			dstWidth 	= 1280.0;
-			dstHeigth 	= 720.0;
-		}else{
-			dstWidth 	= (float)srcwidth;
-			dstHeigth 	= (float)srcheight;	
-		}
-	}else if(srcwidth<1280){
-		if( 0 == accuracy ){
-			dstWidth 	= 480.0;
-			dstHeigth 	= 320.0;
-		}else if( 1 == accuracy ){
-			dstWidth 	= 640.0;
-			dstHeigth 	= 480.0;
-		}else if( 2 == accuracy ){
-			dstWidth 	= 640.0;
-			dstHeigth 	= 512.0;
-		}else if( 3 == accuracy ){
-			dstWidth 	= 720.0;
-			dstHeigth 	= 576.0;
-		}else{
-			dstWidth 	= (float)srcwidth;
-			dstHeigth 	= (float)srcheight;	
+	int state = 0;
+	if( !frameidx[chId] ){
+		if(m_warnRoiVec[chId].size() < 2){
+			std::vector<cv::Point> polyWarnRoi ;
+			polyWarnRoi.resize(4);
+			polyWarnRoi[0]	= cv::Point(0,0);
+			polyWarnRoi[1]	= cv::Point(srcwidth,0);
+			polyWarnRoi[2]	= cv::Point(srcwidth,srcheight);
+			polyWarnRoi[3]	= cv::Point(0,srcheight);
+			this->setWarningRoi(polyWarnRoi,chId);	
 		}
 	}
-
-	float x = (float)srcwidth/dstWidth;
-	float y = (float)srcheight/dstHeigth;
-	this->setROIScalXY(x,y,0);
+	
+	float dstWidth ,dstHeigth;
 	cv::Mat gray;
-	cv::resize(src,gray, cv::Size((int)dstWidth, (int)dstHeigth));
+	if( srcwidth*srcheight*2.0/3.0 < cv::contourArea(m_warnRoiVec[chId]) ){	
+		if(srcwidth >= 1920)
+		{
+			if( 0 == accuracy ){
+				dstWidth 	= 640.0;
+				dstHeigth 	= 480.0;
+			}else if( 1 == accuracy ){
+				dstWidth 	= 720.0;
+				dstHeigth 	= 576.0;
+			}else if( 2 == accuracy ){
+				dstWidth 	= 960.0;
+				dstHeigth 	= 540.0;
+			}else if( 3 == accuracy ){
+				dstWidth 	= 1024.0;
+				dstHeigth 	= 768.0;
+			}else if( 4 == accuracy ){
+				dstWidth 	= 1280.0;
+				dstHeigth 	= 720.0;
+			}else{
+				dstWidth 	= (float)srcwidth;
+				dstHeigth 	= (float)srcheight;	
+			}	
+		}else if(srcwidth >= 1280 && srcwidth < 1920){
+			if( 0 == accuracy ){
+				dstWidth 	= 480.0;
+				dstHeigth 	= 320.0;
+			}else if( 1 == accuracy ){
+				dstWidth 	= 640.0;
+				dstHeigth 	= 480.0;
+			}else if( 2 == accuracy ){
+				dstWidth 	= 640.0;
+				dstHeigth 	= 512.0;
+			}else if( 3 == accuracy ){
+				dstWidth 	= 1024.0;
+				dstHeigth 	= 768.0;
+			}else if( 4 == accuracy ){
+				dstWidth 	= 1280.0;
+				dstHeigth 	= 720.0;
+			}else{
+				dstWidth 	= (float)srcwidth;
+				dstHeigth 	= (float)srcheight;	
+			}
+		}else if(srcwidth<1280){
+			if( 0 == accuracy ){
+				dstWidth 	= 480.0;
+				dstHeigth 	= 320.0;
+			}else if( 1 == accuracy ){
+				dstWidth 	= 640.0;
+				dstHeigth 	= 480.0;
+			}else if( 2 == accuracy ){
+				dstWidth 	= 640.0;
+				dstHeigth 	= 512.0;
+			}else if( 3 == accuracy ){
+				dstWidth 	= 720.0;
+				dstHeigth 	= 576.0;
+			}else{
+				dstWidth 	= (float)srcwidth;
+				dstHeigth 	= (float)srcheight;	
+			}
+		}		
+		float x = (float)srcwidth/dstWidth;
+		float y = (float)srcheight/dstHeigth;
+		this->setROIScalXY(x,y,0);
+		cv::resize(src,gray, cv::Size((int)dstWidth, (int)dstHeigth));
+	}else{
+		cv::Rect boundRect;
+		boundRect = boundingRect(m_warnRoiVec[chId]);
+		gray.create(boundRect.height,boundRect.width,CV_8UC1);
+
+		for(int j = boundRect.y - boundRect.height; j < boundRect.y ; j++){
+			memcpy(gray.data+(j - boundRect.y)*gray.cols,src.data+j*src.cols,gray.cols);
+		}	
+	}
 
 	CV_Assert(chId	< DETECTOR_NUM);
 	if( !src.empty() ){
