@@ -143,8 +143,10 @@ int CMoveDetector::destroy()
 				fgbg[i] = NULL;
 			}
 		#endif
-
-		model[i] = NULL;
+		if(model[i] != NULL){
+			libvibeModel_Sequential_Free(model[i]);
+			model[i] = NULL;
+		}
 		m_BKWidth[i] = 0;
 		m_BKHeight[i] = 0;
 		threshold[i] = 0;
@@ -237,8 +239,10 @@ void	CMoveDetector::setNFrames(int nframes, int chId /*= 0*/)
 
 #endif
 
-void CMoveDetector::setFrame(cv::Mat	src ,int srcwidth , int srcheight ,int accuracy,int chId,int inputArea,int inputThreshold/*30*/)
+void CMoveDetector::setFrame(cv::Mat	src ,int srcwidth , int srcheight ,int chId,int accuracy/*2*/,int inputArea/*8*/,int inputThreshold/*30*/)
 {
+	ASSERT( 1 == src.channels());
+	
 	float dstWidth ,dstHeigth;
 	if(srcwidth >= 1920)
 	{

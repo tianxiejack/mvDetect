@@ -67,7 +67,7 @@ public:
 	int		creat(int history = 500,  float varThreshold = 16, bool bShadowDetection=true);
 	int		init(LPNOTIFYFUNC	notifyFunc, void *context);
 	int		destroy();
-	void	setFrame(cv::Mat	src ,int srcwidth , int srcheight ,int accuracy,int chId,int inputArea,int threshold = 30);
+	void	setFrame(cv::Mat	src ,int srcwidth , int srcheight ,int chId,int accuracy=2,int inputArea=8,int threshold = 30);
 
 	void	clearWarningRoi(int chId	= 0);//清除警戒区
 	void	setWarningRoi(std::vector<cv::Point2i>	warnRoi,	int chId	= 0);
