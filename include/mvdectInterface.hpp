@@ -21,23 +21,11 @@ public:
 public:
 	virtual	int	init(LPNOTIFYFUNC	notifyFunc, void *context){return 1;};
 	virtual	int destroy(){return 1;};
-	
 	virtual	void	setFrame(cv::Mat	src ,int srcwidth , int srcheight ,int chId,int accuracy=2,int inputArea=8,int threshold = 30){};//输入视频帧
 	virtual	void	setWarningRoi(std::vector<cv::Point2i>	warnRoi,	int chId	= 0){};//设置缩放前的警戒区域
 	virtual	void	setWarnMode(WARN_MODE	warnMode,	int chId	= 0){};//设置警戒模式
 	virtual	void	getMoveTarget(std::vector<TRK_RECT_INFO>	&resTarget,	int chId	= 0){};//移动目标
 	virtual void	mvPause(){};
-
-	//virtual	void	setTrkThred(TRK_THRED		trkThred,	int chId	= 0){};
-	//virtual	void	setDrawOSD(cv::Mat	dispOSD, int chId = 0){};
-	//virtual	void	getLostTarget(std::vector<TRK_RECT_INFO>	&resTarget,	int chId	= 0){};//丢失目标
-	//virtual	void	getInvadeTarget(std::vector<TRK_RECT_INFO>	&resTarget,	int chId	= 0){};//入侵目标
-	//virtual	void	getWarnTarget(std::vector<TRK_RECT_INFO>	&resTarget,	int chId	= 0){};//警戒区周边所有目标
-	//virtual	void	getBoundTarget(std::vector<TRK_RECT_INFO>	&resTarget,	int chId	= 0){};//越界目标
 };
-
 CMvDectInterface *MvDetector_Create();
-void MvDetector_Destory(CMvDectInterface *obj);
-
-
 #endif /* MVDECTINTERFACE_H_ */
