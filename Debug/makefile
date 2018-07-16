@@ -11,7 +11,6 @@ RM := rm -rf
 -include subdir.mk
 -include src/OSA_CAP/src/subdir.mk
 -include src/MovDetector/subdir.mk
--include include/VIBE/common/subdir.mk
 
 OS_SUFFIX := $(subst Linux,linux,$(subst Darwin/x86_64,darwin,$(shell uname -s)/$(shell uname -m)))
 

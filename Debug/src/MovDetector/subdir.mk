@@ -42,16 +42,16 @@ CPP_DEPS += \
 src/MovDetector/%.o: ../src/MovDetector/%.cpp
 	@echo 'Building file: $<'
 	@echo 'Invoking: NVCC Compiler'
-	/usr/local/cuda-8.0/bin/nvcc -D__MV_DETECT_VIBE_=1 -I../include -I../src/OSA_CAP/inc -I/usr/include/opencv -I../src/MovDetector -I../include/VIBE -G -g -O0 -Xcompiler -fPIC -ccbin aarch64-linux-gnu-g++ -gencode arch=compute_20,code=sm_20 -gencode arch=compute_50,code=sm_50 -m64 -odir "src/MovDetector" -M -o "$(@:%.o=%.d)" "$<"
-	/usr/local/cuda-8.0/bin/nvcc -D__MV_DETECT_VIBE_=1 -I../include -I../src/OSA_CAP/inc -I/usr/include/opencv -I../src/MovDetector -I../include/VIBE -G -g -O0 -Xcompiler -fPIC --compile -m64 -ccbin aarch64-linux-gnu-g++  -x c++ -o  "$@" "$<"
+	/usr/local/cuda-8.0/bin/nvcc -I../include -I../src/OSA_CAP/inc -I/usr/include/opencv -I../src/MovDetector -G -g -O0 -Xcompiler -fPIC -ccbin aarch64-linux-gnu-g++ -gencode arch=compute_20,code=sm_20 -gencode arch=compute_50,code=sm_50 -m64 -odir "src/MovDetector" -M -o "$(@:%.o=%.d)" "$<"
+	/usr/local/cuda-8.0/bin/nvcc -I../include -I../src/OSA_CAP/inc -I/usr/include/opencv -I../src/MovDetector -G -g -O0 -Xcompiler -fPIC --compile -m64 -ccbin aarch64-linux-gnu-g++  -x c++ -o  "$@" "$<"
 	@echo 'Finished building: $<'
 	@echo ' '
 
 src/MovDetector/%.o: ../src/MovDetector/%.c
 	@echo 'Building file: $<'
 	@echo 'Invoking: NVCC Compiler'
-	/usr/local/cuda-8.0/bin/nvcc -D__MV_DETECT_VIBE_=1 -I../include -I../src/OSA_CAP/inc -I/usr/include/opencv -I../src/MovDetector -I../include/VIBE -G -g -O0 -Xcompiler -fPIC -ccbin aarch64-linux-gnu-g++ -gencode arch=compute_20,code=sm_20 -gencode arch=compute_50,code=sm_50 -m64 -odir "src/MovDetector" -M -o "$(@:%.o=%.d)" "$<"
-	/usr/local/cuda-8.0/bin/nvcc -D__MV_DETECT_VIBE_=1 -I../include -I../src/OSA_CAP/inc -I/usr/include/opencv -I../src/MovDetector -I../include/VIBE -G -g -O0 -Xcompiler -fPIC --compile -m64 -ccbin aarch64-linux-gnu-g++  -x c -o  "$@" "$<"
+	/usr/local/cuda-8.0/bin/nvcc -I../include -I../src/OSA_CAP/inc -I/usr/include/opencv -I../src/MovDetector -G -g -O0 -Xcompiler -fPIC -ccbin aarch64-linux-gnu-g++ -gencode arch=compute_20,code=sm_20 -gencode arch=compute_50,code=sm_50 -m64 -odir "src/MovDetector" -M -o "$(@:%.o=%.d)" "$<"
+	/usr/local/cuda-8.0/bin/nvcc -I../include -I../src/OSA_CAP/inc -I/usr/include/opencv -I../src/MovDetector -G -g -O0 -Xcompiler -fPIC --compile -m64 -ccbin aarch64-linux-gnu-g++  -x c -o  "$@" "$<"
 	@echo 'Finished building: $<'
 	@echo ' '
 

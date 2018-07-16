@@ -27,5 +27,4 @@ C_UPPER_DEPS :=
 SUBDIRS := \
 src/OSA_CAP/src \
 src/MovDetector \
-include/VIBE/common \
 
