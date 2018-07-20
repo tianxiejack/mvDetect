@@ -39,7 +39,8 @@ CMoveDetector_mv::CMoveDetector_mv()
 	m_BKHeight[i] = 0;
 	m_BKWidth[i] = 0;
 	threshold[i] = 0;
-	area[i] = 0;
+	minArea[i] = 0;
+	maxArea[i] = 0;
 	}
 	resetFlag = false;
 }
@@ -150,7 +151,8 @@ int CMoveDetector_mv::destroy()
 		m_BKWidth[i] = 0;
 		m_BKHeight[i] = 0;
 		threshold[i] = 0;
-		area[i] = 0;
+		minArea[i] = 0;
+		maxArea[i] = 0;
 	}
 	resetFlag = false;
 	return rtn;
@@ -237,7 +239,7 @@ void	CMoveDetector_mv::setNFrames(int nframes, int chId /*= 0*/)
 
 #endif
 
-void CMoveDetector_mv::setFrame(cv::Mat	src ,int srcwidth , int srcheight ,int chId,int accuracy/*2*/,int inputArea/*8*/,int inputThreshold/*30*/)
+void CMoveDetector_mv::setFrame(cv::Mat	src ,int srcwidth , int srcheight ,int chId,int accuracy/*2*/,int inputMinArea/*8*/,int inputMaxArea/*200*/,int inputThreshold/*30*/)
 {
 	ASSERT( 1 == src.channels());
 	ASSERT(chId >= 0 && chId < DETECTOR_NUM);
@@ -328,7 +330,7 @@ void CMoveDetector_mv::setFrame(cv::Mat	src ,int srcwidth , int srcheight ,int c
 		}		
 		float x = (float)srcwidth/dstWidth;
 		float y = (float)srcheight/dstHeigth;
-		this->setROIScalXY(x,y,0);
+		this->setROIScalXY(x,y,chId);
 		cv::resize(src,gray, cv::Size((int)dstWidth, (int)dstHeigth));
 	}else{
 		cv::Rect boundRect;
@@ -351,7 +353,8 @@ void CMoveDetector_mv::setFrame(cv::Mat	src ,int srcwidth , int srcheight ,int c
 	#else
 		src.copyTo(frame[chId]);
 	#endif
-		area[chId] = inputArea ;
+		minArea[chId] = inputMinArea;
+		maxArea[chId] = inputMaxArea;	
 		threshold[chId] = inputThreshold;		
 		m_postDetect[chId].InitializedMD(gray.cols, gray.rows>>1, gray.cols);
 		m_postDetect2[chId].InitializedMD(gray.cols,gray.rows>>1, gray.cols);
@@ -634,7 +637,7 @@ void CMoveDetector_mv::maskDetectProcess(OSA_MsgHndl *pMsg)
 			
 #pragma omp parallel for
 			for(k=0; k<2; k++){
-				pMVObj[k]->GetMoveDetect(BGMask[k].data, BGMask[k].cols, BGMask[k].rows, BGMask[k].cols, area[chId],5);
+				pMVObj[k]->GetMoveDetect(BGMask[k].data, BGMask[k].cols, BGMask[k].rows, BGMask[k].cols, minArea[chId],maxArea[chId],5);
 				pMVObj[k]->MovTargetDetect(m_scaleX[chId],	m_scaleY[chId]);
 			}
 			{

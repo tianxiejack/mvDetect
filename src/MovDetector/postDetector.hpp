@@ -21,7 +21,7 @@ class CPostDetect
 public:
 	CPostDetect();
 	virtual ~CPostDetect();
-	BOOL    	GetMoveDetect(LPBYTE lpBitData,int lWidth, int lHeight, int iStride,int area, int iscatter = 20);
+	BOOL    	GetMoveDetect(LPBYTE lpBitData,int lWidth, int lHeight, int iStride,int minArea,int maxArea, int iscatter = 20);
 	BOOL   	VHDilation(LPBYTE lpBitData, int lWidth, int lHeight, int iStride);
 	BOOL   	InitializedMD(int lWidth, int lHeight, int lStride);
 	void		DestroyMD();
