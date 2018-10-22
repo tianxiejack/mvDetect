@@ -29,6 +29,10 @@ void CPostDetect::DestroyMD()
 {
 	if (m_pPatterns != NULL)
 	{
+		for(int i=0; i<SAMPLE_NUMBER; i++){
+			m_pPatterns[i].IdxVec.clear();
+			m_pPatterns[i].lapVec.clear();
+		}
 		delete []m_pPatterns;
 		m_pPatterns = NULL;
 	}
@@ -145,191 +149,6 @@ BOOL  CPostDetect::GetMoveDetect(LPBYTE lpBitData,int lWidth, int lHeight, int i
 		}
 	}
 	
-	
-
-#if 0
-
-	BOOL iRet = TRUE;
-	iRet = InitializedMD(lWidth, lHeight, iStride);
-	if (!iRet) return FALSE;
-
-	Pattern ptn[SAMPLE_NUMBER];
-	memset(&ptn, 0, sizeof(ptn));
-	memset(m_ptemp, 0, lWidth*lHeight*sizeof(TYPE_T));//全部置成0
-	memset(m_iCount,0,sizeof(int)*SAMPLE_NUMBER);
-	memset(m_iRelative,0,sizeof(int)*SAMPLE_NUMBER);
-	memset(m_list,0,sizeof(int)*SAMPLE_NUMBER);
-
-	memset(lpBitData, 0, iStride*BOL);
-	memset(lpBitData+iStride*(lHeight-BOL), 0, iStride*BOL);
-	for(int iCur=0; iCur<lHeight; iCur++){
-		memset(lpBitData+iCur*iStride, 0, BOL);
-		memset(lpBitData+iCur*iStride + lWidth - BOL, 0, BOL);
-	}
-
-	int i, j, t, k;
-	int label = 1; 
-	int kx, ky;  //用于标志附近的值
-	int minlabel=-1, lab[5]; //label
-	int curlab=-1;
-	int max=0;
-
-	//从左到右、从上到下标号
-	const int T = 5;//T为阈值，RGB值小于该阈值被认为是黑
-	BOOL	bJmp = false;
-	m_list[0] = -1;
-
-	for( j=BOL; j<lHeight-BOL	&& !bJmp; j++)	// 从第一行开始搜索
-	{
-		for( i=BOL; i<lWidth-BOL	&& !bJmp; i++) // 从第一列开始搜索
-		{
-			if(*(lpBitData + j*iStride + i) > T)//若当前点为黑点
-			{
-				minlabel=-1;
-				lab[1]=-1; lab[2]=-1; lab[3]=-1; lab[4]=-1;
-
-				ky=j-1; kx=i+1;//右上
-				if(*(lpBitData + ky*iStride + kx)>T)//右上点为黑点
-				{
-					lab[1]= m_ptemp[ky*lWidth + kx];
-			    	minlabel = m_ptemp[ky*lWidth + kx];
-				}
-
-				ky=j-1; kx=i;//正上
-				if(*(lpBitData + ky*iStride + kx)>T)//正上点为黑点
-				{
-					lab[2] = m_ptemp[ky*lWidth + kx];
-					if(minlabel>lab[2]||minlabel==-1)
-					{
-						minlabel=lab[2];
-					}
-				}
-
-				ky=j-1; kx=i-1;//左上
-				if(*(lpBitData + ky*iStride + kx)>T)//左上点为黑点
-				{
-					lab[3] = m_ptemp[ky*lWidth + kx];
-					if(minlabel>lab[3]||minlabel==-1)
-					{
-						minlabel=lab[3];
-					}
-				}
-
-				ky=j; kx=i-1;//左前
-				if(*(lpBitData + ky*iStride + kx)>T)//左前点为黑点
-				{
-					lab[4] = m_ptemp[ky*lWidth + kx];
-					if(minlabel>lab[4]||minlabel==-1)
-					{
-						minlabel=lab[4];
-					}
-				}
-				if(minlabel<0)//
-				{
-					m_ptemp[j*lWidth + i]=(TYPE_T)label;
-					m_list[label]=-1;
-					label++;
-				}
-				else//minlabel>=0
-				{//加入标记号
-					if(lab[1]==lab[2] && lab[2]==lab[3] && lab[3]==lab[4])//所有都一样
-					{
-						m_ptemp[j*lWidth + i] = (TYPE_T)minlabel;
-					}
-					else if(minlabel==(lab[1]+lab[2]+lab[3]+lab[4]+3)) //ֻ只有一个一样
-					{
-						m_ptemp[j*lWidth + i] = (TYPE_T)minlabel;
-					}
-					else //有不一样的
-					{
-						m_ptemp[j*lWidth + i] = (TYPE_T)minlabel;
-						for( k=1; k<=4; k++)
-						{
-							if(lab[k] >= 1)
-							{
-								if(lab[k] != minlabel)
-								{
-									m_list[lab[k]] = minlabel;
-								}
-							}
-						}
-					}
-				}
-				if(lpBitData[j*iStride + i] > T && m_ptemp[j*lWidth + i]<=0)
-				{
-					m_ptemp[j*lWidth + i] = (TYPE_T)label;
-					m_list[label++]=-1;
-				}
-				if(label > SAMPLE_NUMBER-3){
-					bJmp	= TRUE;
-					break;
-				}
-			}
-		}// 列
-	}//end 行
-
-	//取代标记号
-	for( j=BOL; j<lHeight-BOL; j++)	// 从第一行开始搜索
-	{
-		for( i=BOL; i<lWidth-BOL; i++) //从第一列开始搜索
-		{
-			if(m_ptemp[j*lWidth + i] > 0)
-			{
-				curlab = m_ptemp[j*lWidth + i];
-				while (m_list[curlab]!=-1)//搜索最小的标记号
-				{
-					curlab = m_list[curlab];
-				}
-				m_ptemp[j*lWidth + i] = (TYPE_T)curlab;
-				if(curlab < SAMPLE_NUMBER)
-				{
-					m_iCount[curlab]++;//记录每个标记所包含点的个数
-				}
-			}
-		}
-	}
-	for(i=1; i<SAMPLE_NUMBER; i++)
-	{
-		if(m_iCount[i] > iscatter)//在这个地方去离散点
-		{
-			m_iRelative[max+1] = i;//对应关系
-			max++;
-		}
-	}
-	int patternnum = max;//连通区域数目
-
-	for( i=0; i<SAMPLE_NUMBER; i++) //
-	{
-		ptn[i].lefttop.x = lWidth;
-		ptn[i].lefttop.y = lHeight;
-		ptn[i].rightbottom.x = 0;
-		ptn[i].rightbottom.y = 0;
-	}
-	for(t=1; t<=patternnum; t++)//记录每个样品（独立连通区域）的左上、右下点坐标
-	{
-		for(j=BOL; j<lHeight-BOL; j++)//搜索整幅图像
-		{
-			for(i=BOL; i<lWidth-BOL; i++)
-			{
-				if(*(m_ptemp + j*lWidth + i) == (TYPE_T)m_iRelative[t])
-				{
-					if (ptn[t-1].lefttop.x > i)//get the lefttop point
-						ptn[t-1].lefttop.x = i;
-					if (ptn[t-1].lefttop.y > j)
-						ptn[t-1].lefttop.y = j;
-					if (ptn[t-1].rightbottom.x < i)//get the rightbottom point
-						ptn[t-1].rightbottom.x = i;
-					if (ptn[t-1].rightbottom.y < j)
-						ptn[t-1].rightbottom.y = j;
-				}
-			}
-		}
-		ASSERT(ptn[t-1].lefttop.x <= ptn[t-1].rightbottom.x);
-		ASSERT(ptn[t-1].lefttop.y <= ptn[t-1].rightbottom.y);
-		ASSERT(ptn[t-1].rightbottom.x < lWidth);
-		ASSERT(ptn[t-1].rightbottom.y < lHeight);
-	}
-#endif
 #if 0
 	m_patternnum = 0;
 	memcpy(m_pPatterns, &ptn, sizeof(ptn));
@@ -338,10 +157,7 @@ BOOL  CPostDetect::GetMoveDetect(LPBYTE lpBitData,int lWidth, int lHeight, int i
 	MergeRect(ptn, patternnum);
 #endif
 	return iRet;
-
-
 }
-
 
 inline void mergeOverLap(cv::Rect rec1,cv::Rect rec2,cv::Rect &outRec)
 {
@@ -500,7 +316,7 @@ void	CPostDetect::MovTargetDetect(float nScalX /*= 1*/, float nScalY /*= 1*/)
 		cv::Rect rect((int)(rc_center.x-recW/2),	(int)(rc_center.y-recH/2),	 recW, recH);
 		double	distance	= cv::pointPolygonTest( polyRoi, rc_center, true );///1.0
 
-		//if(distance >0.0)
+//		if(distance >0.0)
 		{
 			TRK_RECT_INFO	curInfo;
 			curInfo.targetRect		=	rect;
@@ -512,6 +328,33 @@ void	CPostDetect::MovTargetDetect(float nScalX /*= 1*/, float nScalY /*= 1*/)
 			m_movTargetRec.push_back(curInfo);
 		}
 		//printf("m_movTargetRec size = %d \n",m_movTargetRec.size());
+	}
+}
+
+void 	CPostDetect::validTarget(std::vector<TRK_RECT_INFO>	TmpMVTarget, std::vector<TRK_RECT_INFO>	&MVTarget)
+{
+	int i, nsize;
+	std::vector<cv::Point2f>		polyRoi;
+
+	nsize = m_warnRoi.size();
+	CV_Assert(nsize	>2);
+	polyRoi.resize(nsize);
+
+	for(i=0; i<nsize; i++){
+		polyRoi[i]	= cv::Point2f((float)m_warnRoi[i].x, (float)m_warnRoi[i].y);
+	}
+
+	MVTarget.clear();
+	nsize = TmpMVTarget.size();
+	for(i=0; i<nsize; i++){
+		cv::Rect targetRec = TmpMVTarget[i].targetRect;
+		cv::Point2f rc_center = cv::Point2f((float)targetRec.x+targetRec.width/2.0, (float)targetRec.y+targetRec.height/2.0);
+		double	distance	= cv::pointPolygonTest( polyRoi, rc_center, true );///1.0
+		if(distance >0.0){
+			TRK_RECT_INFO	curInfo = TmpMVTarget[i];
+			curInfo.distance = distance;
+			MVTarget.push_back(curInfo);
+		}
 	}
 }
 
@@ -652,6 +495,56 @@ void	CPostDetect::warnTargetSelect( float nScalX /*= 1*/, float nScalY /*= 1*/)
 //	DrawWarnTarget(src,	m_warnTargetRec);
 }
 
+void	CPostDetect::warnTargetSelect_New(const std::vector<TRK_RECT_INFO>	MVTarget)
+{
+	int i, nsize;
+	std::vector<cv::Point2f>		polyRoi;
+
+	nsize = m_warnRoi.size();
+	CV_Assert(nsize	>2);
+	polyRoi.resize(nsize);
+
+	for(i=0; i<nsize; i++){
+		polyRoi[i]	= cv::Point2f((float)m_warnRoi[i].x, (float)m_warnRoi[i].y);
+	}
+
+	m_warnTargetRec.clear();
+	nsize = MVTarget.size();
+	for(i=0; i<nsize; i++){
+		cv::Rect targetRec = MVTarget[i].targetRect;
+		cv::Point2f rc_center = cv::Point2f((float)targetRec.x+targetRec.width/2.0, (float)targetRec.y+targetRec.height/2.0);
+		double	distance	= cv::pointPolygonTest( polyRoi, rc_center, true );///1.0
+		double	tgw	= targetRec.width;
+		double	tgh	=  targetRec.height;
+		double	diagd	 = sqrt(tgw*tgw+tgh*tgh);
+		double	maxd	=  diagd*3/4;
+		double	mind	=	tgw>tgh?tgw/4:tgh/4;
+		maxd = maxd<60.0?60.0:maxd;
+
+		TRK_RECT_INFO	curInfo;
+		curInfo.targetRect		=	targetRec;
+		curInfo.distance		= distance;
+		curInfo.disp_frames	=	0;
+		curInfo.warnType	=	WARN_STATE_IDLE;
+		curInfo.trk_frames	= 0;
+
+		if(distance>=mind /*&& distance<=maxd	*/){
+			curInfo.targetType = TARGET_IN_POLYGON;
+			m_warnTargetRec.push_back(curInfo);
+		}else if(distance>-mind	&&	distance<mind	){
+			curInfo.targetType = TARGET_IN_EDGE;
+			m_warnTargetRec.push_back(curInfo);
+		}else if(/*distance>= -maxd	&&	*/distance<=	-mind	){
+			curInfo.targetType = TARGET_OUT_POLYGON;
+			m_warnTargetRec.push_back(curInfo);
+		}else{
+			curInfo.targetType = TARGET_NORAM;
+			m_warnTargetRec.push_back(curInfo);
+		}
+
+	}
+}
+
 static void _drawWarnTarget(cv::Mat	frame,	std::vector<TRK_RECT_INFO>	warnTarget, bool bshow)
 {
 	int	k;
@@ -696,6 +589,20 @@ void	CPostDetect::SetTargetBGFGTrk()
 
 void	CPostDetect::WarnTargetBGFGTrk()
 {
+	m_bgfgTrack.TrackProcess(m_pPatterns,	m_patternnum);
+}
+
+void	CPostDetect::WarnTargetBGFGTrk_New()
+{
+	int i, nsize = m_warnTargetRec.size();
+	m_patternnum = nsize;
+	for(i=0; i<nsize; i++){
+		cv::Rect targetRec = m_warnTargetRec[i].targetRect;
+		m_pPatterns[i].lefttop.x= targetRec.x;
+		m_pPatterns[i].lefttop.y= targetRec.y;
+		m_pPatterns[i].rightbottom.x= targetRec.x+targetRec.width;
+		m_pPatterns[i].rightbottom.y= targetRec.y+targetRec.height;
+	}
 	m_bgfgTrack.TrackProcess(m_pPatterns,	m_patternnum);
 }
 

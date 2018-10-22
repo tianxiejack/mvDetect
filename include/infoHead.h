@@ -5,8 +5,8 @@
 #include <opencv2/highgui/highgui.hpp>
 
 #define		TRK_TG_NUM				10
-#define  		SAMPLE_NUMBER 	256
-#define		DETECTOR_NUM		10
+#define  	SAMPLE_NUMBER 	256
+#define		DETECTOR_NUM		2
 
 #define ASSERT			CV_Assert
 #define TRACE			printf
@@ -48,6 +48,7 @@ typedef	enum{
 	WARN_INVADE_MODE					=	0x04,
 	WARN_LOST_MODE						=	0x08,
 	WARN_INVAD_LOST_MODE		=	0x10,
+	WARN_TRACK_MODE					=	0x20,
 }WARN_MODE;
 
 typedef struct _pattern_t
@@ -56,7 +57,8 @@ typedef struct _pattern_t
 	cv::Point  	rightbottom;//
 	bool		   	bValid;
 	bool		   	bEdge;
-
+	std::vector<int> IdxVec;
+	std::vector<float> lapVec;
 }Pattern;
 
 typedef	struct	 _trk_rect_t{
@@ -66,6 +68,7 @@ typedef	struct	 _trk_rect_t{
 	double							distance;
 	int									disp_frames;
 	int									trk_frames;
+	int									lost_frames;
 	WARN_ROI_STATE			warnType;
 	int									index;
 }TRK_RECT_INFO;

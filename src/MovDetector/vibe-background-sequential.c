@@ -117,7 +117,7 @@ vibeModel_Sequential_t *libvibeModel_Sequential_New(int threshold)
   model->numberOfSamples         = 20;
   model->matchingThreshold       = threshold;//40;
   model->matchingNumber          = 2;
-  model->updateFactor            = 16;
+  model->updateFactor            = 	16;
 
   /* Storage for the history. */
   model->historyImage            = NULL;

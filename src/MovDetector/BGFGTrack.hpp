@@ -16,7 +16,7 @@ public:
 	void	Kalman(double *measure, double *control);
 	void	KalmanPredict(int xout, int yout);
 
-	void	SetTrkTarget(std::vector<TRK_RECT_INFO>	warnTarget);
+	void	SetTrkTarget(const std::vector<TRK_RECT_INFO>	warnTarget);
 	void	TrackProcess(Pattern  *curPatterns,	 int	numPatterns);
 	int		TrackAnalyse(std::vector<cv::Point2i>	warnRoi);
 	void	GetTrackTarget(std::vector<TRK_RECT_INFO> &lostTarget, std::vector<TRK_RECT_INFO> &invadeTarget, std::vector<TRK_RECT_INFO> &warnTarget);

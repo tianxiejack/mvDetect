@@ -43,8 +43,9 @@ public:
 	double* error_cov_post;       //[DP * DP]
 	double* gain;                 //[DP * MP]
 
-	double   deltat; // ��Ƶ����ʱ����
+	double   deltat;
 	BOOL     m_bInited;
+	double *memSpace;
 
 public: //temporary  variable 
 	double *B_Uk;		 //[ DP * 1  ]

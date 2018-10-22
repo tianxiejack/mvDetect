@@ -2,8 +2,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// 判断点在有向直线的左侧还是右侧.
-// 返回值:-1: 点在线段左侧; 0: 点在线段上; 1: 点在线段右侧
 int PointAtLineLeftRight(cv::Point ptStart, cv::Point ptEnd, cv::Point ptTest)
 {
 	ptStart.x -= ptTest.x;
@@ -22,7 +20,6 @@ int PointAtLineLeftRight(cv::Point ptStart, cv::Point ptEnd, cv::Point ptTest)
 	return 0;
 }
 
-// 判断两条线段是否相交
 bool IsTwoLineIntersect(cv::Point ptLine1Start, cv::Point ptLine1End, cv::Point ptLine2Start, cv::Point ptLine2End)
 {
 	int nLine1Start = PointAtLineLeftRight(ptLine2Start, ptLine2End, ptLine1Start);
@@ -39,7 +36,6 @@ bool IsTwoLineIntersect(cv::Point ptLine1Start, cv::Point ptLine1End, cv::Point 
 	return true;
 }
 
-// 判断线段是否与矩形相交
 bool IsLineIntersectRect(cv::Point ptStart, cv::Point ptEnd, cv::Rect rect)
 {
 	// Two point both are in rect
@@ -69,12 +65,9 @@ bool IsLineIntersectRect(cv::Point ptStart, cv::Point ptEnd, cv::Rect rect)
 	return false;
 }
 
-//A(ax,ay),B(px,py)为两个点  （x1,y1）,(x2,y2)为矩形的左上角和右下角坐标  ,判断A，B两点是否和矩形相交  
-
 bool	lineInRectJudge(cv::Point ptStart, cv::Point ptEnd, cv::Rect rect)
 {
 	float ax, ay, px, py, x1, y1, x2, y2;
-//#转换为真除法
 	ax =   float(ptStart.x);
 	ay =  float(ptStart.y); 
 	px =  float(ptEnd.x);
@@ -85,20 +78,18 @@ bool	lineInRectJudge(cv::Point ptStart, cv::Point ptEnd, cv::Rect rect)
 	x2 = float(rect.x+rect.width);
 	y2  =  float(rect.y+rect.height);
 
-//#判断矩形上边线和两点直线相交的点
 	float	sx = (y1 - ay) * (px - ax) / (py - ay) + ax;
 	if (sx >= x1 && sx <= x2)
 		return true;
-//#判断矩形下边线和两点直线相交的点
+
 	float	xx = (y1 - ay) * (px - ax) / (py - ay) + ax;
 	if (sx >= x1 && sx <= x2)
 	return true;
 
-//#判断矩形左边线和两点直线相交的点
 	float	zy = (y2 - ay) * (x2 - ax) / (px - ax) + ay;
 	if (zy >= y1 && zy <= y2)
 		return true;
-//#判断矩形右边线和两点直线相交的点
+
 	float	yy = (y2 - ay) * (x2 - ax) / (px - ax) + ay;
 	if (yy <= y1 && yy >= y2)
 		return true;

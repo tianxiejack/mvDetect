@@ -26,6 +26,11 @@ public:
 	virtual	void	setWarnMode(WARN_MODE	warnMode,	int chId	= 0){};//设置警戒模式
 	virtual	void	getMoveTarget(std::vector<TRK_RECT_INFO>	&resTarget,	int chId	= 0){};//移动目标
 	virtual void	mvPause(){};
+	virtual void	setDrawOSD(cv::Mat	dispOSD, int chId = 0){};//设置绘制OSD对象
+	virtual void	enableSelfDraw(bool	bEnable, int chId = 0){};//使能绘制
+	virtual void 	 setMatchingThreshold(const uint32_t matchingThreshold, int chId = 0){};
+	virtual void 	 setUpdateFactor(const uint32_t updateFactor, int chId = 0){};
+	virtual bool  getFrameMV(cv::Mat preFrame, cv::Mat curFrame, cv::Point2f  &pt){return false;};
 };
 CMvDectInterface *MvDetector_Create();
 #endif /* MVDECTINTERFACE_H_ */

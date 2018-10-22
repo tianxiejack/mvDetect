@@ -11,6 +11,7 @@
 #include "mvdectInterface.hpp"
 #include "postDetector.hpp"
 #include "MOG3.hpp"
+#include "MSTracker.h"
 
 
 #include "vibe-background-sequential.h" 	//__MV_DETECT_VIBE_
@@ -76,7 +77,9 @@ public:
 	void	setWarnMode(WARN_MODE	warnMode,	int chId	= 0);
 	void	enableSelfDraw(bool	bEnable, int chId = 0);
 	void    setROIScalXY(float scaleX = 1.0, float scaleY = 1.0, int chId = 0);
-
+	void 	 setMatchingThreshold(const uint32_t matchingThreshold, int chId = 0);
+	void 	 setUpdateFactor(const uint32_t updateFactor, int chId = 0);
+	bool 	 getFrameMV(cv::Mat preFrame, cv::Mat curFrame, cv::Point2f  &pt);
 
 	void	getLostTarget(std::vector<TRK_RECT_INFO>	&resTarget,	int chId	= 0);//丢失目标
 	void	getInvadeTarget(std::vector<TRK_RECT_INFO>	&resTarget,	int chId	= 0);//入侵目标
@@ -84,16 +87,16 @@ public:
 	void	getBoundTarget(std::vector<TRK_RECT_INFO>	&resTarget,	int chId	= 0);//越界目标
 	void	getWarnTarget(std::vector<TRK_RECT_INFO>	&resTarget,	int chId	= 0);//警戒区周边所有目标
 	void	mvPause();
-
 	
 public:
 	MOG2_PARAM	m_mogParam;
 	cv::Mat	frame[DETECTOR_NUM];
 	cv::Mat 	fgmask[DETECTOR_NUM];
 	cv::Mat	disframe[DETECTOR_NUM];
-	cv::Mat backframe[DETECTOR_NUM];
+	cv::Mat 	bakOrigframe[DETECTOR_NUM];
 	CPostDetect		m_postDetect[DETECTOR_NUM];
 	CPostDetect		m_postDetect2[DETECTOR_NUM];
+	CMSTracker		m_MSTrkObj[DETECTOR_NUM];
 	
 	OSA_TskHndl m_maskDetectTsk[DETECTOR_NUM];
 	BOOL			m_bExit;
@@ -140,6 +143,8 @@ private:
 	bool		m_bSelfDraw[DETECTOR_NUM];
 	float		m_scaleX[DETECTOR_NUM];
 	float		m_scaleY[DETECTOR_NUM];
+	cv::Point		m_offsetPt[DETECTOR_NUM];
+	int	m_bInterval[DETECTOR_NUM];
 
 };
 

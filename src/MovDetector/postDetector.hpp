@@ -39,14 +39,17 @@ public:
 	void		getMoveTarget(std::vector<TRK_RECT_INFO> &moveTarget);
 
 	void		warnTargetSelect(float nScalX = 1, float nScalY = 1);
+	void		warnTargetSelect_New(const std::vector<TRK_RECT_INFO>	MVTarget);
 	void		DrawWarnTarget(cv::Mat	frame,	std::vector<TRK_RECT_INFO>	warnTarget);
 
 	void		SetTargetBGFGTrk();
 	void		WarnTargetBGFGTrk();
+	void		WarnTargetBGFGTrk_New();
 	void		TargetBGFGAnalyse();
 	void		GetBGFGTarget(std::vector<TRK_RECT_INFO> &lostTarget, std::vector<TRK_RECT_INFO> &invadeTarget, std::vector<TRK_RECT_INFO> &warnTarget);
 	void		DrawBGFGTarget(cv::Mat	frame);
-	int		GetWarnState(){return m_warnState;};
+	int			GetWarnState(){return m_warnState;};
+	void 		validTarget(std::vector<TRK_RECT_INFO>	TmpMVTarget, std::vector<TRK_RECT_INFO>	&MVTarget);
 
 public:
 	Pattern  *m_pPatterns;

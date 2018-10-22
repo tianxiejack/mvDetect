@@ -31,9 +31,10 @@ CKalman_mv::CKalman_mv()
 	Kk_H_Xk = NULL;
 	H_Pk = NULL;
 	Kk_H_Pk = NULL;
-	deltat = 0.04; // ��Ƶ����ʱ����
+	deltat = 0.04;
 
 	m_bInited = FALSE;
+	memSpace = NULL;
 }
 
 CKalman_mv::~CKalman_mv()
@@ -44,6 +45,7 @@ CKalman_mv::~CKalman_mv()
 
 int CKalman_mv::KalmanOpen(int D, int M, int C )
 {
+	int ptrPos = 0;
 	if( D <= 0 || M <= 0 ){
 		//AfxMessageBox("state and measurement vectors must have positive number of dimensions! ");	
 		m_bInited = FALSE;
@@ -57,7 +59,7 @@ int CKalman_mv::KalmanOpen(int D, int M, int C )
     DP = D;
     MP = M;
     CP = C;
-
+/*
 	if(state_pre == NULL){
 		state_pre = new double[DP * 1];
 		memset( state_pre ,  0 , sizeof (*state_pre) );
@@ -155,12 +157,142 @@ int CKalman_mv::KalmanOpen(int D, int M, int C )
 		Kk_H_Pk   = new double [ DP * DP ];
 		memset( Kk_H_Pk ,  0 , sizeof (*Kk_H_Pk) );
 	}
+*/
+    if(memSpace == NULL){
+    	memSpace = (double*)new double[512];
+    }
+	if(state_pre == NULL){
+		state_pre = memSpace+ptrPos;//new double[DP * 1];
+		ptrPos +=DP;
+		memset( state_pre ,  0 , sizeof (*state_pre) );
+	}
+	if(state_post == NULL){
+		state_post = memSpace+ptrPos;//new double[DP * 1];
+		ptrPos +=DP;
+		memset( state_post , 0 , sizeof (*state_post) );
+	}
+	if (measure_param == NULL){
+		measure_param = memSpace+ptrPos;//new double[MP * 1];
+		ptrPos +=MP;
+		memset( measure_param , 0 , sizeof (*measure_param) );
+	}
+	if(transition_matrix == NULL){
+		transition_matrix = memSpace+ptrPos;//new double[DP * DP];
+		ptrPos +=DP*DP;
+		memset( transition_matrix , 0 , sizeof (*transition_matrix) );
+	}
+	if(process_noise_cov == NULL){
+		process_noise_cov = memSpace+ptrPos;//new double[DP * DP];
+		ptrPos +=DP*DP;
+		memset( process_noise_cov , 0 , sizeof (*process_noise_cov) );
+	}
+	if(measurement_matrix == NULL){
+		measurement_matrix = memSpace+ptrPos;//new double[MP * DP];
+		ptrPos +=MP*DP;
+		memset( measurement_matrix , 0 , sizeof (*measurement_matrix) );
+	}
+	if(measurement_noise_cov == NULL){
+		measurement_noise_cov = memSpace+ptrPos;//new double[MP * MP];
+		ptrPos +=MP*MP;
+		memset( measurement_noise_cov , 0 , sizeof (*measurement_noise_cov) );
+	}
+	if(error_cov_pre == NULL){
+		error_cov_pre = memSpace+ptrPos;//new double[DP * DP];
+		ptrPos +=DP*DP;
+		memset( error_cov_pre , 0 , sizeof (*error_cov_pre) );
+	}
+	if(error_cov_post == NULL){
+		error_cov_post = memSpace+ptrPos;//new double[DP * DP];
+		ptrPos +=DP*DP;
+		memset( error_cov_post , 0 , sizeof (*error_cov_post) );
+	}
+	if(gain == NULL){
+		gain = memSpace+ptrPos;//new double[DP * MP];
+		ptrPos +=DP*MP;
+		memset( gain , 0 , sizeof (*gain) );
+	}
+	if( CP > 0 )
+    {
+		if(control_matrix == NULL){
+			control_matrix = memSpace+ptrPos;//new double[ DP * CP ];
+			ptrPos +=DP*CP;
+			memset( control_matrix , 0 , sizeof (*control_matrix) );
+		}
+    }
+
+	if(B_Uk == NULL){
+		B_Uk  = memSpace+ptrPos;//new double[ DP * MP ];
+		ptrPos +=DP*MP;
+		memset( B_Uk ,  0 , sizeof (*B_Uk) );
+	}
+	if(A_Pk == NULL){
+		A_Pk  = memSpace+ptrPos;//new double[ DP * DP ];
+		ptrPos +=DP*DP;
+		memset( A_Pk ,  0 , sizeof (*A_Pk) );
+	}
+	if(A_T == NULL){
+		A_T   = memSpace+ptrPos;//new double[ DP * DP ];
+		ptrPos +=DP*DP;
+		memset( A_T ,  0 , sizeof (*A_T) );
+	}
+	if(APA_T == NULL){
+		APA_T = memSpace+ptrPos;//new double[ DP * DP ];
+		ptrPos +=DP*DP;
+		memset( APA_T ,  0 , sizeof (*APA_T) );
+	}
+
+	if(H_T == NULL){
+		H_T       = memSpace+ptrPos;//new double [ DP * MP ];
+		ptrPos +=DP*MP;
+		memset( H_T ,  0 , sizeof (*H_T) );
+	}
+	if(Pk_Ht == NULL){
+		Pk_Ht     = memSpace+ptrPos;//new double [ DP * MP ];
+		ptrPos +=DP*MP;
+		memset( Pk_Ht ,  0 , sizeof (*Pk_Ht) );
+	}
+	if(Pk_Ht_R == NULL){
+		Pk_Ht_R   = memSpace+ptrPos;//new double [ MP * MP ];
+		ptrPos +=MP*MP;
+		memset( Pk_Ht_R ,  0 , sizeof (*Pk_Ht_R) );
+	}
+	if(Pk_Ht_R_Inv == NULL){
+		Pk_Ht_R_Inv = memSpace+ptrPos;//new double [ MP * MP ];
+		ptrPos +=MP*MP;
+		memset( Pk_Ht_R_Inv ,  0 , sizeof (*Pk_Ht_R_Inv) );
+	}
+	if(H_Xk == NULL){
+		H_Xk      = memSpace+ptrPos;//new double [ MP *  1 ];
+		ptrPos +=MP;
+		memset( H_Xk ,  0 , sizeof (*H_Xk) );
+	}
+	if(Kk_H_Xk == NULL){
+		Kk_H_Xk   = memSpace+ptrPos;//new double [ DP *  1 ];
+		ptrPos +=DP;
+		memset( Kk_H_Xk ,  0 , sizeof (*Kk_H_Xk) );
+	}
+	if(H_Pk == NULL){
+		H_Pk      = memSpace+ptrPos;//new double [ MP * DP ];
+		ptrPos +=MP*DP;
+		memset( H_Pk ,  0 , sizeof (*H_Pk) );
+	}
+	if(Kk_H_Pk == NULL){
+		Kk_H_Pk   = memSpace+ptrPos;//new double [ DP * DP ];
+		ptrPos +=DP*DP;
+		memset( Kk_H_Pk ,  0 , sizeof (*Kk_H_Pk) );
+	}
 	m_bInited = TRUE;
 	return 0;
 }
 
 void CKalman_mv::KalmanClose()
 {
+#if 1
+	if(memSpace != NULL){
+		delete []memSpace;
+		memSpace = NULL;
+	}
+#else
 	if(state_pre != NULL){
 		delete [] state_pre ;        state_pre = NULL;
 	}
@@ -235,6 +367,7 @@ void CKalman_mv::KalmanClose()
 	if(Kk_H_Pk != NULL){
 		delete [] Kk_H_Pk;  Kk_H_Pk = NULL;
 	}
+#endif
 }
 
 #if 0
@@ -244,45 +377,45 @@ void CKalman_mv::KalmanInitParam(int x_centre, int y_centre, double DeltaT)
 		return;
 	}
 	int x, y;
-	/* ��̼�������Э������� */
+
 	for ( y = 0; y < DP; y++ ){
 		for ( x = 0; x < DP; x++ ){
 			process_noise_cov[y*DP+x] = 0.0;
 		}
 	}
 	for ( y = 0; y < DP; y++ ){
-		process_noise_cov[y*DP+y] = 1.0;  /* Э���Ϊ1.0�����໥���� */
+		process_noise_cov[y*DP+y] = 1.0;
 	}
-	/* �۲�����Э������� */
+
 	for ( y = 0; y < MP; y++ ){
 		for ( x = 0; x < MP; x++ ){
 			measurement_noise_cov[y*MP+x] = 0.0;
 		}
 	}
 	for ( y = 0; y < MP; y++ ){
-		measurement_noise_cov[y*MP+y] = 1.0;  /* Э���Ϊ1.0�����໥���� */
+		measurement_noise_cov[y*MP+y] = 1.0;
 	}
-	/* ״̬�������Э���� */
+
 	for ( y = 0; y < DP; y++ ){
 		for ( x = 0; x < DP; x++ ){
 			error_cov_post[y*DP+x] = 0.0;
 		}
 	}
 	for ( y = 0; y < DP; y++ ){
-		error_cov_post[y*DP+y] = 10.0;  /* �Խǳ�ʼЭ���Ϊ10�����໥���� */
+		error_cov_post[y*DP+y] = 10.0;
 	}
-	/* ״̬ת���� */
+
 	for ( y = 0; y < DP; y++ ){
 		for ( x = 0; x < DP; x++ ){
 			transition_matrix[y*DP+x] = 0.0;
 		}
 	}
 	for ( y = 0; y < DP; y++ ){
-		transition_matrix[y*DP+y] = 1.0;  /* �Խ�Ϊ1 */
+		transition_matrix[y*DP+y] = 1.0;
 	}
 	transition_matrix[0*DP+2] = deltat;
 	transition_matrix[1*DP+3] = deltat;
-	/* �۲���״̬�����۲�����ת�ƾ��� */
+
 	for ( y = 0; y < MP; y++ ){
 		for ( x = 0; x < DP; x++ ){
 			measurement_matrix[y*DP+x] = 0.0; 
@@ -294,11 +427,10 @@ void CKalman_mv::KalmanInitParam(int x_centre, int y_centre, double DeltaT)
 		measurement_matrix[y*DP+y] = 1.0;
 	}
 
-	// �۲���������˳��x, y
+
 	measure_param[0] = (float)x_centre;
 	measure_param[1] = (float)y_centre;
-	/* ��ʼ���˶��ٶȡ�λ�á��봰��ߡ��߶ȱ仯�ٶȵ�״̬�� */
-    // ״̬��������˳��x, y, xv, yv
+
 	state_post[0] = (float)x_centre;
 	state_post[1] = (float)y_centre;
 	state_post[2] = 0.0;
@@ -315,7 +447,7 @@ void CKalman_mv::KalmanInitParam(int x_centre, int y_centre, double DeltaT)
 		return;
 	}
 	int x, y;
-	/* ��̼�������Э������� */
+
 	for ( y = 0; y < DP; y++ ){
 		for ( x = 0; x < DP; x++ ){
 			process_noise_cov[y*DP+x] = 0.0;
@@ -327,7 +459,7 @@ void CKalman_mv::KalmanInitParam(int x_centre, int y_centre, double DeltaT)
 	process_noise_cov[2*DP+2] = 0.00001;//9.0; 
 	process_noise_cov[3*DP+3] = 0.00001;//9.0; 
 
-	/* �۲�����Э������� */
+
 	for ( y = 0; y < MP; y++ ){
 		for ( x = 0; x < MP; x++ ){
 			measurement_noise_cov[y*MP+x] = 0.0;
@@ -337,27 +469,27 @@ void CKalman_mv::KalmanInitParam(int x_centre, int y_centre, double DeltaT)
 	measurement_noise_cov[0*MP+0] = 0.25;//4.0;
 	measurement_noise_cov[1*MP+1] = 0.25;//4.0;
 	
-	/* ״̬�������Э���� */
+
 	for ( y = 0; y < DP; y++ ){
 		for ( x = 0; x < DP; x++ ){
 			error_cov_post[y*DP+x] = 0.0;
 		}
 	}
 	for ( y = 0; y < DP; y++ ){
-		error_cov_post[y*DP+y] = 1.0;  /* �Խǳ�ʼЭ���Ϊ10�����໥���� */
+		error_cov_post[y*DP+y] = 1.0;
 	}
-	/* ״̬ת���� */
+
 	for ( y = 0; y < DP; y++ ){
 		for ( x = 0; x < DP; x++ ){
 			transition_matrix[y*DP+x] = 0.0;
 		}
 	}
 	for ( y = 0; y < DP; y++ ){
-		transition_matrix[y*DP+y] = 1.0;  /* �Խ�Ϊ1 */
+		transition_matrix[y*DP+y] = 1.0;
 	}
 	transition_matrix[0*DP+2] = DeltaT;
 	transition_matrix[1*DP+3] = DeltaT;
-	/* �۲���״̬�����۲�����ת�ƾ��� */
+
 	for ( y = 0; y < MP; y++ ){
 		for ( x = 0; x < DP; x++ ){
 			measurement_matrix[y*DP+x] = 0.0; 
@@ -367,11 +499,10 @@ void CKalman_mv::KalmanInitParam(int x_centre, int y_centre, double DeltaT)
 		measurement_matrix[y*DP+y] = 1.0;
 	}
 	
-	// �۲���������˳��x, y
+
 	measure_param[0] = (float)x_centre;
 	measure_param[1] = (float)y_centre;
-	/* ��ʼ���˶��ٶȡ�λ�á��봰��ߡ��߶ȱ仯�ٶȵ�״̬�� */
-    // ״̬��������˳��x, y, xv, yv
+
 	state_post[0] = (float)x_centre;
 	state_post[1] = (float)y_centre;
 	state_post[2] = 0.0;
@@ -607,16 +738,6 @@ int CKalman_mv::MatrixInversion(double* A, int n, double* AInverse)
 	return 1;
 }
 
-/*
-	��ȫѡ��ԪGauss-Jordan����n��ʵ����A�������A^{-1}
-	�������
-	double * A��     ԭ����Ϊһ������
-	int n��          ����ά��
-	�������
-	double * A��     ��õ������
-	����ֵ��
-	���ر��Ϊ0����ʾ�������죻���򷵻ط�0ֵ
-*/
 int CKalman_mv::MatrixBrinv( double * A, int n)
 {
 	int * is, * js, i, j, k, l, u, v;
@@ -640,7 +761,7 @@ int CKalman_mv::MatrixBrinv( double * A, int n)
 				}
 			}
 		}
-		if ( d+1.0 == 1.0 ) /* ����Ϊ������ */
+		if ( d+1.0 == 1.0 )
 		{ 
 			free( is ); 
 			free( js ); 

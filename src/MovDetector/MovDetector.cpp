@@ -8,6 +8,7 @@
 using namespace cv;
 using namespace std;
 
+static int _gGapFrames = 5;
 
 CMoveDetector_mv::CMoveDetector_mv()
 {
@@ -25,6 +26,8 @@ CMoveDetector_mv::CMoveDetector_mv()
 		m_bSelfDraw[i] = false;
 		m_scaleX[i] = 1.0;
 		m_scaleY[i] = 1.0;
+		m_offsetPt[i] = cv::Point(0, 0);
+		m_bInterval[i] = 0;
 	}
 	m_notifyFunc = NULL;
 	m_context = NULL;
@@ -57,7 +60,6 @@ int CMoveDetector_mv::creat(int history /*= 500*/,  float varThreshold /*= 16*/,
 	setUseOptimized(true);
 	setNumThreads(4);
 
-
 	for(i=0; i<DETECTOR_NUM; i++)
 	{
 #ifdef	BGFG_CR
@@ -85,7 +87,6 @@ int CMoveDetector_mv::creat(int history /*= 500*/,  float varThreshold /*= 16*/,
 		}
 #endif
 	}
-
 
 	return	0;
 }
@@ -332,38 +333,48 @@ void CMoveDetector_mv::setFrame(cv::Mat	src ,int srcwidth , int srcheight ,int c
 		float y = (float)srcheight/dstHeigth;
 		this->setROIScalXY(x,y,chId);
 		cv::resize(src,gray, cv::Size((int)dstWidth, (int)dstHeigth));
+		m_offsetPt[chId].x = 0;
+		m_offsetPt[chId].y = 0;
+		minArea[chId] = inputMinArea/(x*y);
+		maxArea[chId] = inputMaxArea/(x*y);
 	}else{
 		cv::Rect boundRect;
 		boundRect = boundingRect(m_warnRoiVec[chId]);
+		boundRect.x = (boundRect.x&(~1));
+		boundRect.y = (boundRect.y&(~1));
+		boundRect.width = (boundRect.width&(~3));
+		boundRect.height = (boundRect.height&(~3));
 		gray.create(boundRect.height,boundRect.width,CV_8UC1);
 
-		for(int j = boundRect.y - boundRect.height; j < boundRect.y ; j++){
-			memcpy(gray.data+(j - boundRect.y)*gray.cols,src.data+j*src.cols,gray.cols);
-		}	
+		src(boundRect).copyTo(gray);
+
+		this->setROIScalXY(1.0,1.0,chId);
+		m_offsetPt[chId].x = boundRect.x;
+		m_offsetPt[chId].y = boundRect.y;
+		minArea[chId] = inputMinArea/1.0;
+		maxArea[chId] = inputMaxArea/1.0;
+//		OSA_printf("%s:boundRect(x=%d,y=%d,w=%d,h=%d)",__func__, boundRect.x, boundRect.y, boundRect.width, boundRect.height);
 	}
 	//printf("delta t2 = %d \n",OSA_getCurTimeInMsec() - t1);
 
 	CV_Assert(chId	< DETECTOR_NUM);
 	if( !src.empty() ){
 
+		src.copyTo(bakOrigframe[chId]);
 	#if 1
 		cv::blur(gray, frame[chId],cv::Size(3,3));
-	
 	//printf("delta t3 = %d \n",OSA_getCurTimeInMsec() - t1);
 	#else
 		src.copyTo(frame[chId]);
 	#endif
-		minArea[chId] = inputMinArea;
-		maxArea[chId] = inputMaxArea;	
+
 		threshold[chId] = inputThreshold;		
 		m_postDetect[chId].InitializedMD(gray.cols, gray.rows>>1, gray.cols);
 		m_postDetect2[chId].InitializedMD(gray.cols,gray.rows>>1, gray.cols);
 		OSA_tskSendMsg(&m_maskDetectTsk[chId], NULL, (Uint16)chId, NULL, 0);	
 		//printf("delta t4 = %d \n",OSA_getCurTimeInMsec() - t1);
-		
 	}
 }
-
 
 void	CMoveDetector_mv::setWarningRoi(std::vector<cv::Point2i>	warnRoi,	int chId	/*= 0*/)
 {
@@ -473,103 +484,138 @@ static void CopyTrkTarget(CPostDetect *pMVObj,  std::vector<TRK_RECT_INFO> &trkT
 	}
 }
 
-
 void CMoveDetector_mv::mvPause()
 {
 	if(!resetFlag)
 		resetFlag = true;
 }
 
-#if 0
-void CMoveDetector_mv::maskDetectProcess(OSA_MsgHndl *pMsg)
+void  CMoveDetector_mv::setMatchingThreshold(const uint32_t matchingThreshold, int chId /*= 0*/)
 {
-		int chId;
-		chId	=	pMsg->cmd ;
-		CV_Assert(chId < DETECTOR_NUM);
-		if(m_bExit)
-			return;
+	if(model[chId]!= NULL)	{
+		libvibeModel_Sequential_SetMatchingThreshold(model[chId], matchingThreshold);
+	}
+}
 
-		if(m_warnRoiVec[chId].size() == 0)
-		{
-			m_movTarget[chId].clear();
-			m_warnLostTarget[chId].clear();
-			m_warnInvadeTarget[chId].clear();
-			m_warnTarget[chId].clear();
-			m_edgeTarget[chId].clear();
-			if(m_notifyFunc != NULL)
-			{
-				(*m_notifyFunc)(m_context, chId);
-			}
-			return;
+void  CMoveDetector_mv::setUpdateFactor(const uint32_t updateFactor, int chId /*= 0*/)
+{
+	if(model[chId]!= NULL)	{
+		libvibeModel_Sequential_SetUpdateFactor(model[chId], updateFactor);
+	}
+}
+
+static float calEuclidean(cv::Point2f pos1, cv::Point2f pos2)
+{
+	return (float)(sqrt((pos1.x-pos2.x)*(pos1.x-pos2.x)+(pos1.y-pos2.y)*(pos1.y-pos2.y)));
+}
+
+#define GET_AVE_OPT_POS_2(I, J)	\
+		opt = (similarVal[I]+similarVal[J])/2;		\
+		pt.x = floor((offsetXY[I].x+offsetXY[J].x)/2.0+0.5);	\
+		pt.y = floor((offsetXY[I].y+offsetXY[J].y)/2.0+0.5);
+
+#define GET_AVE_OPT_POS_3(optConf, I, J, K)	\
+		opt = (similarVal[I]+similarVal[J]+similarVal[K])/2;		\
+		pt.x = floor((offsetXY[I].x+offsetXY[J].x+offsetXY[K].x)/2.0+0.5);	\
+		pt.y = floor((offsetXY[I].y+offsetXY[J].y+offsetXY[K].x)/2.0+0.5);
+
+bool CMoveDetector_mv::getFrameMV(cv::Mat preFrame, cv::Mat curFrame, cv::Point2f  &pt)
+{
+	int i, j, width, height, centW, centH;
+	cv::Rect	scenePos, refPos[4], curPos[4];
+	cv::Mat	tmplModel[4], curImg[4];
+	cv::Point2f offsetXY[4];
+	float	similarVal[4], opt = 0.f;
+	float  euLen[4][4];
+	float optThred = 0.8, euThred = 2.0;
+
+	width = preFrame.cols;
+	height = preFrame.rows;
+	if(width<=768){ //720x576
+		scenePos.width = 72;
+		scenePos.height = 60;
+	}else if(width<=1024){//1024x768
+		scenePos.width = 100;
+		scenePos.height = 72;
+	}else if(width<=1280){//1280x1024
+		scenePos.width = 120;
+		scenePos.height = 90;
+	}else{//1920x1080
+		scenePos.width = 156;
+		scenePos.height = 96;
+	}
+	scenePos.x =scenePos.width*1.75;
+	scenePos.y = scenePos.height*1.75;
+	scenePos.x &=(~1);
+	scenePos.y &=(~1);
+	for(i=0; i<4; i++){
+		int startx = ((i%2)==0)?(width/2-scenePos.x-scenePos.width):(width/2+scenePos.x);
+		int starty = ((i/2)==0)?(height/2-scenePos.y-scenePos.height):(height/2+scenePos.y);
+		refPos[i].x = (startx&(~1));
+		refPos[i].y = (starty&(~1));
+		refPos[i].width = scenePos.width;
+		refPos[i].height = scenePos.height;
+
+		curPos[i].x = refPos[i].x - scenePos.width*0.25;
+		curPos[i].y = refPos[i].y - scenePos.height*0.25;
+		curPos[i].width = scenePos.width*1.5;
+		curPos[i].height = scenePos.height*1.5;
+		curPos[i].x &= (~1);			curPos[i].y &= (~1);
+		curPos[i].width &= (~1);	curPos[i].height &= (~1);
+	}
+
+#pragma omp parallel for
+	for(i=0; i<4; i++){
+		cv::Mat result;
+		double minVal, maxVal;
+		cv::Point minLoc,maxLoc;
+
+		preFrame(refPos[i]).copyTo(tmplModel[i]);
+		curFrame(curPos[i]).copyTo(curImg[i]);
+
+		matchTemplate(curImg[i], tmplModel[i], result, CV_TM_CCOEFF_NORMED);
+		minMaxLoc(result, &minVal, &maxVal, &minLoc, &maxLoc);
+
+		if(maxLoc.x == 0 && maxLoc.y == 0){
+			maxVal = 0.0;
+			offsetXY[i].x = -1.f;
+			offsetXY[i].y = -1.f;
+		}else{
+			offsetXY[i].x = curPos[i].x+maxLoc.x;
+			offsetXY[i].y = curPos[i].y+maxLoc.y;
 		}
-		bool update_bg_model = true;
-		if(!frame[chId].empty())
-		{
-			Uint32 t1 = OSA_getCurTimeInMsec() ;
-			(*fgbg[chId])(frame[chId], fgmask[chId], update_bg_model ? -1 : 0);
-			OSA_printf("%s:delt_t1=%d\n",__func__, OSA_getCurTimeInMsec() - t1);
-
-			if(m_postDetect[chId].GetMoveDetect(fgmask[chId].data, fgmask[chId].cols, fgmask[chId].rows, fgmask[chId].cols,5) )
-			{
-				OSA_printf("%s:delt_t2=%d\n",__func__, OSA_getCurTimeInMsec() - t1);
-
-				if(	(m_warnMode[chId] & WARN_MOVEDETECT_MODE)	)	//move target detect
-				{
-					m_postDetect[chId].MovTargetDetect(m_scaleX[chId],	m_scaleY[chId]);
-					m_postDetect[chId].getMoveTarget(m_movTarget[chId]);
-
-					if(m_bSelfDraw[chId] && !disframe[chId].empty() )
-					{
-						int	npoint	= m_warnRoiVec[chId].size();
-						for(int i=0; i<npoint; i++)
-						{
-							line(disframe[chId], m_warnRoiVec[chId][i], m_warnRoiVec[chId][(i+1)%npoint], cvScalar(0,0,255,255), 4, 8);
-						}
-						m_postDetect[chId].MovTargetDraw(disframe[chId]);
-					}
-				}
-				else if(	(m_warnMode[chId] & WARN_INVADE_MODE)  || (m_warnMode[chId] & WARN_LOST_MODE)	 || (m_warnMode[chId] & WARN_INVAD_LOST_MODE))//lost or invade detect
-				{
-					m_postDetect[chId].warnTargetSelect(m_scaleX[chId],	m_scaleY[chId]);
-					m_postDetect[chId].SetTargetBGFGTrk();
-					m_postDetect[chId].WarnTargetBGFGTrk();
-					m_postDetect[chId].TargetBGFGAnalyse();
-					m_postDetect[chId].GetBGFGTarget(m_warnLostTarget[chId], m_warnInvadeTarget[chId], m_warnTarget[chId]);
-
-					if(m_bSelfDraw[chId] && !disframe[chId].empty())
-					{
-						int	npoint	= m_warnRoiVec[chId].size();
-						for(int i=0; i<npoint; i++)
-						{
-							line(disframe[chId], m_warnRoiVec[chId][i], m_warnRoiVec[chId][(i+1)%npoint], cvScalar(0,0,255,255), 4, 8);
-						}
-						m_postDetect[chId].DrawBGFGTarget(disframe[chId]);
-					}
-				}
-				else if(	(m_warnMode[chId] & WARN_BOUNDARY_MODE)	)//edge target detect
-				{
-						m_postDetect[chId].edgeTargetDetect(m_scaleX[chId],	m_scaleY[chId]);
-						m_postDetect[chId].getEdgeTarget(m_edgeTarget[chId]);
-
-						if(m_bSelfDraw[chId] && !disframe[chId].empty())
-						{
-							int	npoint	= m_warnRoiVec[chId].size();
-							for(int i=0; i<npoint; i++)
-							{
-								line(disframe[chId], m_warnRoiVec[chId][i], m_warnRoiVec[chId][(i+1)%npoint], cvScalar(0,0,255,255), 4, 8);
-							}
-							m_postDetect[chId].edgeTargetDraw(disframe[chId]);
-						}
-				}
-				if(m_notifyFunc != NULL)
-				{
-					(*m_notifyFunc)(m_context, chId);
-				}
+		similarVal[i] = maxVal;
+	}
+	for(j=0; j<4; j++){
+		for(i= j+1; i<4; i++){
+			euLen[j][i] = calEuclidean(offsetXY[i], offsetXY[j]);
+			euLen[i][j] = euLen[j][i];
 		}
 	}
 
+	if(euLen[0][1]<euThred && similarVal[0] > optThred  && similarVal[1] > optThred){
+		GET_AVE_OPT_POS_2( 0, 1);
+	}else if(euLen[0][2]<euThred && similarVal[0] > optThred  && similarVal[2] > optThred){
+		GET_AVE_OPT_POS_2(0, 2);
+	}else if(euLen[0][3]<euThred && similarVal[0] > optThred  && similarVal[3] > optThred){
+		GET_AVE_OPT_POS_2(0, 3);
+	}else if(euLen[1][2]<euThred && similarVal[1] > optThred  && similarVal[2] > optThred){
+		GET_AVE_OPT_POS_2(1, 2);
+	}else if(euLen[1][3]<euThred && similarVal[1] > optThred  && similarVal[3] > optThred){
+		GET_AVE_OPT_POS_2(1, 3);
+	}else if(euLen[2][3]<euThred && similarVal[2] > optThred  && similarVal[3] > optThred){
+		GET_AVE_OPT_POS_2(2, 3);
+	}else{
+		opt = 0.f;
+		pt.x = pt.y = -1;
+	}
+
+	 if(opt>optThred){
+		 return true;
+	 }
+	 return false;
 }
-#else
+
 void CMoveDetector_mv::maskDetectProcess(OSA_MsgHndl *pMsg)
 {
 		int chId;
@@ -578,6 +624,14 @@ void CMoveDetector_mv::maskDetectProcess(OSA_MsgHndl *pMsg)
 		if(m_bExit)
 			return;
 		
+		int	bRun = false;
+		if((m_bInterval[chId]%_gGapFrames)==0){
+			bRun = true;
+		}
+		m_bInterval[chId]++;
+		if(m_bInterval[chId] == (_gGapFrames+1))
+			m_bInterval[chId] = 0;
+
 		if(m_warnRoiVec[chId].size() == 0)
 		{
 			m_movTarget[chId].clear();
@@ -598,42 +652,46 @@ void CMoveDetector_mv::maskDetectProcess(OSA_MsgHndl *pMsg)
 		//	Uint32 t1 = OSA_getCurTimeInMsec() ;
 
 #if 1
-		if(frame[chId].cols != m_BKWidth[chId] || frame[chId].rows != m_BKHeight[chId]){
-			if(model[chId]!= NULL)	{
-				libvibeModel_Sequential_Free(model[chId]);
-				model[chId]= NULL;
+			if(frame[chId].cols != m_BKWidth[chId] || frame[chId].rows != m_BKHeight[chId]){
+				if(model[chId]!= NULL)	{
+					libvibeModel_Sequential_Free(model[chId]);
+					model[chId]= NULL;
+				}
 			}
-		}
-		if (model[chId] == NULL) {
-			model[chId] = (vibeModel_Sequential_t*)libvibeModel_Sequential_New(threshold[chId]);
-			libvibeModel_Sequential_AllocInit_8u_C1R(model[chId], frame[chId].data, frame[chId].cols, frame[chId].rows);
-			m_BKWidth[chId] = frame[chId].cols;
-			m_BKHeight[chId] = frame[chId].rows;
-			m_movTarget[chId].clear();
-		}
-		if(model[chId] != NULL){
-			fgmask[chId] = Mat(frame[chId].rows, frame[chId].cols, CV_8UC1);
-			libvibeModel_Sequential_Segmentation_8u_C1R(model[chId], frame[chId].data, fgmask[chId].data);
-			libvibeModel_Sequential_Update_8u_C1R(model[chId], frame[chId].data, fgmask[chId].data);
-		}
+			if (model[chId] == NULL) {
+				model[chId] = (vibeModel_Sequential_t*)libvibeModel_Sequential_New(threshold[chId]);
+				libvibeModel_Sequential_AllocInit_8u_C1R(model[chId], frame[chId].data, frame[chId].cols, frame[chId].rows);
+				m_BKWidth[chId] = frame[chId].cols;
+				m_BKHeight[chId] = frame[chId].rows;
+				m_movTarget[chId].clear();
+			}
+			if(model[chId] != NULL){
+				fgmask[chId] = Mat(frame[chId].rows, frame[chId].cols, CV_8UC1);
+
+				libvibeModel_Sequential_Segmentation_8u_C1R(model[chId], frame[chId].data, fgmask[chId].data);
+				libvibeModel_Sequential_Update_8u_C1R(model[chId], frame[chId].data, fgmask[chId].data);
+
+				cv::Mat element = getStructuringElement(MORPH_ELLIPSE, Size(5,5));
+				cv::dilate(fgmask[chId], fgmask[chId], element);
+			}
 #else
-		frameCount++;
-		if(frameCount > 500)
-			update_bg_model = false;
-		(*fgbg[chId])(frame[chId], fgmask[chId], update_bg_model ? -1 : 0);
-		assert(fgmask[chId].channels() == 1);
+			frameCount++;
+			if(frameCount > 500)
+				update_bg_model = false;
+			(*fgbg[chId])(frame[chId], fgmask[chId], update_bg_model ? -1 : 0);
+			assert(fgmask[chId].channels() == 1);
 #endif
 			
 		//OSA_printf("%s:delt_t1=%d\n",__func__, OSA_getCurTimeInMsec() - t1);
 
-		int k;
-		cv::Mat BGMask[2];
-		CPostDetect* pMVObj[2];
-		for(k=0; k<2; k++){
-			BGMask[k]= cv::Mat(fgmask[chId].rows>>1, fgmask[chId].cols, CV_8UC1, fgmask[chId].data+(k*fgmask[chId].cols*(fgmask[chId].rows>>1)) );
-		}
-		pMVObj[0] = &m_postDetect[chId];
-		pMVObj[1] = &m_postDetect2[chId];
+			int k;
+			cv::Mat BGMask[2];
+			CPostDetect* pMVObj[2];
+			for(k=0; k<2; k++){
+				BGMask[k]= cv::Mat(fgmask[chId].rows>>1, fgmask[chId].cols, CV_8UC1, fgmask[chId].data+(k*fgmask[chId].cols*(fgmask[chId].rows>>1)) );
+			}
+			pMVObj[0] = &m_postDetect[chId];
+			pMVObj[1] = &m_postDetect2[chId];
 			
 #pragma omp parallel for
 			for(k=0; k<2; k++){
@@ -642,17 +700,65 @@ void CMoveDetector_mv::maskDetectProcess(OSA_MsgHndl *pMsg)
 			}
 			{
 				//OSA_printf("%s:delt_t2=%d\n",__func__, OSA_getCurTimeInMsec() - t1);
+				int nsize1= m_postDetect[chId].m_movTargetRec.size();
+				int nsize2= m_postDetect2[chId].m_movTargetRec.size();
 
-				if(	(m_warnMode[chId] & WARN_MOVEDETECT_MODE)	)	//move target detect
+				std::vector<TRK_RECT_INFO>		tmpMVTarget;
+				cv::Size offsize;
+
+				offsize.width = m_offsetPt[chId].x;
+				offsize.height = (int)((fgmask[chId].rows>>1)*m_scaleY[chId]);
+				offsize.height += m_offsetPt[chId].y;
+				tmpMVTarget.resize(nsize1+nsize2);
+				CopyTrkTarget(&m_postDetect[chId], tmpMVTarget, nsize1, 0, cv::Size(m_offsetPt[chId].x,m_offsetPt[chId].y));
+				CopyTrkTarget(&m_postDetect2[chId], tmpMVTarget, nsize2, nsize1, offsize);
+
+				if( (m_warnMode[chId] & WARN_MOVEDETECT_MODE)	)	//move target detect
 				{
-					int nsize1= m_postDetect[chId].m_movTargetRec.size();
-					int nsize2= m_postDetect2[chId].m_movTargetRec.size();
-					cv::Size offsize;
-					offsize.width = 0;
-					offsize.height = (int)((fgmask[chId].rows>>1)*m_scaleY[chId]);
-					m_movTarget[chId].resize(nsize1+nsize2);					
-					CopyTrkTarget(&m_postDetect[chId], m_movTarget[chId], nsize1, 0, cv::Size(0,0));
-					CopyTrkTarget(&m_postDetect2[chId], m_movTarget[chId], nsize2, nsize1, offsize);
+					m_postDetect[chId].validTarget(tmpMVTarget, m_movTarget[chId]);
+
+					if(m_bSelfDraw[chId] && !disframe[chId].empty() )
+					{
+						int	npoint	= m_warnRoiVec[chId].size();
+						for(int i=0; i<npoint; i++)
+						{
+							line(disframe[chId], m_warnRoiVec[chId][i], m_warnRoiVec[chId][(i+1)%npoint], cvScalar(0,0,255,255), 4, 8);
+						}
+						m_postDetect[chId].DrawWarnTarget(disframe[chId], m_movTarget[chId]);
+					}
+				}
+				else if(	(m_warnMode[chId] & WARN_INVADE_MODE)  || (m_warnMode[chId] & WARN_LOST_MODE)	 || (m_warnMode[chId] & WARN_INVAD_LOST_MODE))//lost or invade detect
+				{
+					m_postDetect[chId].warnTargetSelect_New(tmpMVTarget);
+					m_postDetect[chId].SetTargetBGFGTrk();
+					m_postDetect[chId].WarnTargetBGFGTrk_New();
+//					m_postDetect[chId].TargetBGFGAnalyse();
+					m_postDetect[chId].GetBGFGTarget(m_warnLostTarget[chId], m_warnInvadeTarget[chId], m_warnTarget[chId]);
+
+					if(m_bSelfDraw[chId] && !disframe[chId].empty())
+					{
+						int	npoint	= m_warnRoiVec[chId].size();
+						for(int i=0; i<npoint; i++)
+						{
+							line(disframe[chId], m_warnRoiVec[chId][i], m_warnRoiVec[chId][(i+1)%npoint], cvScalar(0,0,255,255), 4, 8);
+						}
+						m_postDetect[chId].DrawBGFGTarget(disframe[chId]);
+					}
+				}
+				else if( (m_warnMode[chId] & WARN_TRACK_MODE) )
+				{
+					m_MSTrkObj[chId].Process(bakOrigframe[chId], tmpMVTarget, bRun);
+
+					if(m_bSelfDraw[chId] && !disframe[chId].empty())
+					{
+						int	npoint	= m_warnRoiVec[chId].size();
+						for(int i=0; i<npoint; i++)
+						{
+							line(disframe[chId], m_warnRoiVec[chId][i], m_warnRoiVec[chId][(i+1)%npoint], cvScalar(0,0,255,255), 4, 8);
+						}
+						m_MSTrkObj[chId].DrawTrkTarget(disframe[chId], disframe[chId], false);
+						m_MSTrkObj[chId].DrawTrkTarget(disframe[chId], disframe[chId], true);
+					}
 				}
 				
 				if( m_notifyFunc != NULL )
@@ -665,18 +771,18 @@ void CMoveDetector_mv::maskDetectProcess(OSA_MsgHndl *pMsg)
 	if( true == resetFlag ){
 		for(int i =0;i<DETECTOR_NUM; i++){
 			if(model[i] != NULL){
-			libvibeModel_Sequential_Free(model[i]);
+				libvibeModel_Sequential_Free(model[i]);
 			model[i] = NULL;
-		}
-		m_BKWidth[i] = 0;
-		m_BKHeight[i] = 0;
-		threshold[i] = 0;
-		m_movTarget[i].clear();
+			}
+			m_BKWidth[i] = 0;
+			m_BKHeight[i] = 0;
+			threshold[i] = 0;
+			m_movTarget[i].clear();
+			if( m_notifyFunc != NULL )
+			{
+				(*m_notifyFunc)(m_context, chId);
+			}
 		}
 		resetFlag = false;
 	}
 }
-#endif
-
-
-
