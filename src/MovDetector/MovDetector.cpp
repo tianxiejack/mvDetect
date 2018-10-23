@@ -7,8 +7,11 @@
 
 using namespace cv;
 using namespace std;
+//using namespace mv_detect;
 
 static int _gGapFrames = 5;
+
+namespace mv_detect{
 
 CMoveDetector_mv::CMoveDetector_mv()
 {
@@ -240,13 +243,15 @@ void	CMoveDetector_mv::setNFrames(int nframes, int chId /*= 0*/)
 
 #endif
 
-void CMoveDetector_mv::setFrame(cv::Mat	src ,int srcwidth , int srcheight ,int chId,int accuracy/*2*/,int inputMinArea/*8*/,int inputMaxArea/*200*/,int inputThreshold/*30*/)
+void CMoveDetector_mv::setFrame(cv::Mat	src ,int chId,int accuracy/*2*/,int inputMinArea/*8*/,int inputMaxArea/*200*/,int inputThreshold/*30*/)
 {
 	ASSERT( 1 == src.channels());
 	ASSERT(chId >= 0 && chId < DETECTOR_NUM);
 	//UInt32 t1 = OSA_getCurTimeInMsec();
 	int state = 0;
 	std::vector<cv::Point>::iterator ptmp;
+
+	int srcwidth =src.cols,  srcheight = src.rows;
 
 	//if(model[chId] == NULL)
 	{
@@ -671,6 +676,11 @@ void CMoveDetector_mv::maskDetectProcess(OSA_MsgHndl *pMsg)
 				libvibeModel_Sequential_Segmentation_8u_C1R(model[chId], frame[chId].data, fgmask[chId].data);
 				libvibeModel_Sequential_Update_8u_C1R(model[chId], frame[chId].data, fgmask[chId].data);
 
+				cv::Mat dispMat;
+				cvtColor(fgmask[chId], dispMat, CV_GRAY2BGR);
+				imshow("Binary", dispMat);
+				waitKey(1);
+
 				cv::Mat element = getStructuringElement(MORPH_ELLIPSE, Size(5,5));
 				cv::dilate(fgmask[chId], fgmask[chId], element);
 			}
@@ -785,4 +795,6 @@ void CMoveDetector_mv::maskDetectProcess(OSA_MsgHndl *pMsg)
 		}
 		resetFlag = false;
 	}
+}
+
 }

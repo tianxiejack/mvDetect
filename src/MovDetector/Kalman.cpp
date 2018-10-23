@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <memory.h>
 
+namespace mv_detect{
+
 CKalman_mv::CKalman_mv()
 {
 	state_pre = NULL;
@@ -848,4 +850,5 @@ int CKalman_mv::MatrixBrinv( double * A, int n)
 void CKalman_mv::MatrixCopy(double *A, double *B, int m, int n)
 {
 	memcpy(A, B, sizeof(double)*m*n);
+}
 }

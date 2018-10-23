@@ -3,13 +3,15 @@
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/core/core.hpp>
-#include "prehead.h"
+//#include "prehead.h"
 #include "mmthead.h"
 #include "MatchTracker.h"
 #include "infoHead.h"
 
 using namespace cv;
 using namespace std;
+
+namespace mv_detect{
 
 #define		BORADERWIDTH       32
 #define		TRK_FRAME_NUM	 	40
@@ -70,5 +72,7 @@ public:
 	int					m_stillPixel;
 	int					m_movePixel;
 };
+
+}
 
 #endif

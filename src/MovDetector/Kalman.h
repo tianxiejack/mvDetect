@@ -1,11 +1,12 @@
 #ifndef  _KALMAN_H_
 #define  _KALMAN_H_
 
+namespace mv_detect{
+
 //#define NULL		0
 #define FALSE	0
 #define TRUE		1
 #define BOOL		bool
-
 
 class CKalman_mv
 {
@@ -63,5 +64,5 @@ public: //temporary  variable
 	double *Kk_H_Pk;     //[ DP * DP ]
 
 };
-
+}
 #endif

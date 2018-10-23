@@ -3,6 +3,8 @@
 
 using namespace cv;
 
+namespace mv_detect{
+
 namespace OurMogBgs_mv{
 /*
  Interface of Gaussian mixture algorithm from:
@@ -596,4 +598,5 @@ void BackgroundSubtractorMOG3::setShadowThreshold(double value) { fTau = (float)
 
 void BackgroundSubtractorMOG3::setDetectNFrames(int nframe) {nframes = nframe;}
 
+}
 }

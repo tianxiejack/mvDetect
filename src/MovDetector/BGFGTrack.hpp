@@ -4,6 +4,8 @@
 #include	"Kalman.h"
 #include	"infoHead.h"
 
+using namespace mv_detect;
+
 class CBGFGTracker
 {
 public:

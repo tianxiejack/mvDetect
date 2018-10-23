@@ -12,6 +12,7 @@
 
 using namespace cv;
 using namespace std;
+using namespace mv_detect;
 
 //typedef    unsigned char TYPE_T ;
 typedef    short  TYPE_T;

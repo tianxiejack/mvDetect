@@ -4,6 +4,8 @@
 #include <opencv2/core/core.hpp>
 #include "Kalman.h"
 
+namespace mv_detect{
+
 class	CMatchTracker{
 public:
 	CMatchTracker();
@@ -41,4 +43,5 @@ public:
 	bool	m_bKalman;
 };
 
+}
 #endif

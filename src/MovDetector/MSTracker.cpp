@@ -5,6 +5,8 @@
 #include <omp.h>
 #include "MSTracker.h"
 
+namespace mv_detect{
+
 static void MSTrkAcq(CMatchTracker *pTrackObj, cv::Mat inputFrame,cv::Rect inputParam)
 {
 	pTrackObj->MatchTrkAcq(inputFrame, inputParam);
@@ -546,4 +548,5 @@ void CMSTracker::DrawTrkTarget(cv::Mat src,  cv::Mat osd, bool bShow /*= true*/)
 	if(bShow){
 		memcpy(m_trkTargetOutBak, m_trkTargetOut, sizeof(TRKTarget)*MAX_TGT_NUM);
 	}
+}
 }

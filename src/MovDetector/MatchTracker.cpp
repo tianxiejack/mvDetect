@@ -2,6 +2,8 @@
 #define FALSE 0
 #define TRUE  1
 
+namespace mv_detect{
+
 static bool overlapRoi(cv::Rect rec1,	cv::Rect	rec2, cv::Rect &roi)
 {
 	cv::Point tl1,tl2;
@@ -287,5 +289,6 @@ int CMatchTracker::CalTgtSTRUCT(cv::Mat image, cv::Rect inputParam, int *SSIM)
 	return vsquared;
 }
 
+}
 
 
