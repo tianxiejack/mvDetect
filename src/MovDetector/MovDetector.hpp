@@ -86,7 +86,9 @@ public:
 	void	getMoveTarget(std::vector<TRK_RECT_INFO>	&resTarget,	int chId	= 0);//移动目标
 	void	getBoundTarget(std::vector<TRK_RECT_INFO>	&resTarget,	int chId	= 0);//越界目标
 	void	getWarnTarget(std::vector<TRK_RECT_INFO>	&resTarget,	int chId	= 0);//警戒区周边所有目标
-	void	mvPause();
+	bool	isRun();
+	void	mvOpen();
+	void	mvClose();
 	
 public:
 	MOG2_PARAM	m_mogParam;
@@ -108,7 +110,7 @@ public:
 	int threshold[DETECTOR_NUM];
 	vibeModel_Sequential_t *model[DETECTOR_NUM];
 	int m_BKWidth[DETECTOR_NUM], m_BKHeight[DETECTOR_NUM];
-	bool resetFlag;
+	bool statusFlag;
 
 protected:
 
