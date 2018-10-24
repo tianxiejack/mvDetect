@@ -93,6 +93,7 @@ public:
 public:
 	MOG2_PARAM	m_mogParam;
 	cv::Mat	frame[DETECTOR_NUM];
+	cv::Mat frameIn[DETECTOR_NUM];
 	cv::Mat 	fgmask[DETECTOR_NUM];
 	cv::Mat	disframe[DETECTOR_NUM];
 	cv::Mat 	bakOrigframe[DETECTOR_NUM];
@@ -140,13 +141,14 @@ private:
 //	Ptr<BackgroundSubtractorMOG2> fgbg[DETECTOR_NUM];
 
 	LPNOTIFYFUNC	m_notifyFunc;
-	void	*m_context;
-	WARN_MODE		m_warnMode[DETECTOR_NUM];
+	void *		m_context;
+	WARN_MODE	m_warnMode[DETECTOR_NUM];
 	bool		m_bSelfDraw[DETECTOR_NUM];
 	float		m_scaleX[DETECTOR_NUM];
 	float		m_scaleY[DETECTOR_NUM];
-	cv::Point		m_offsetPt[DETECTOR_NUM];
-	int	m_bInterval[DETECTOR_NUM];
+	cv::Point	m_offsetPt[DETECTOR_NUM];
+	int			m_bInterval[DETECTOR_NUM];
+	bool 		m_busy[DETECTOR_NUM];
 
 };
 }

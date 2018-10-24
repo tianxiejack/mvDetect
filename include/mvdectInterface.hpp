@@ -24,6 +24,7 @@ public:
 	virtual	void	setWarningRoi(std::vector<cv::Point2i>	warnRoi,	int chId	= 0){};//设置缩放前的警戒区域
 	virtual	void	setWarnMode(WARN_MODE	warnMode,	int chId	= 0){};//设置警戒模式
 	virtual	void	getMoveTarget(std::vector<TRK_RECT_INFO>	&resTarget,	int chId	= 0){};//移动目标
+	virtual void	getWarnTarget(std::vector<TRK_RECT_INFO>	&resTarget,	int chId	= 0){};
 	virtual void	setDrawOSD(cv::Mat	dispOSD, int chId = 0){};//设置绘制OSD对象
 	virtual void	enableSelfDraw(bool	bEnable, int chId = 0){};//使能绘制
 	virtual void 	setMatchingThreshold(const uint32_t matchingThreshold, int chId = 0){};

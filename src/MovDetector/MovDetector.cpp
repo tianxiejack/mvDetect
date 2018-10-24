@@ -31,6 +31,7 @@ CMoveDetector_mv::CMoveDetector_mv()
 		m_scaleY[i] = 1.0;
 		m_offsetPt[i] = cv::Point(0, 0);
 		m_bInterval[i] = 0;
+		m_busy[i] = false;
 	}
 	m_notifyFunc = NULL;
 	m_context = NULL;
@@ -367,7 +368,7 @@ void CMoveDetector_mv::setFrame(cv::Mat	src ,int chId,int accuracy/*2*/,int inpu
 
 		src.copyTo(bakOrigframe[chId]);
 	#if 1
-		cv::blur(gray, frame[chId],cv::Size(3,3));
+		cv::blur(gray, frameIn[chId],cv::Size(3,3));
 	//printf("delta t3 = %d \n",OSA_getCurTimeInMsec() - t1);
 	#else
 		src.copyTo(frame[chId]);
@@ -376,7 +377,8 @@ void CMoveDetector_mv::setFrame(cv::Mat	src ,int chId,int accuracy/*2*/,int inpu
 		threshold[chId] = inputThreshold;		
 		m_postDetect[chId].InitializedMD(gray.cols, gray.rows>>1, gray.cols);
 		m_postDetect2[chId].InitializedMD(gray.cols,gray.rows>>1, gray.cols);
-		OSA_tskSendMsg(&m_maskDetectTsk[chId], NULL, (Uint16)chId, NULL, 0);	
+		if(!m_busy[chId])
+			OSA_tskSendMsg(&m_maskDetectTsk[chId], NULL, (Uint16)chId, NULL, 0);	
 		//printf("delta t4 = %d \n",OSA_getCurTimeInMsec() - t1);
 	}
 }
@@ -634,7 +636,7 @@ bool CMoveDetector_mv::getFrameMV(cv::Mat preFrame, cv::Mat curFrame, cv::Point2
 
 void CMoveDetector_mv::maskDetectProcess(OSA_MsgHndl *pMsg)
 {	
-		int chId;
+		int chId, k;
 		chId = pMsg->cmd ;
 
 		if( !isRun() )
@@ -669,12 +671,16 @@ void CMoveDetector_mv::maskDetectProcess(OSA_MsgHndl *pMsg)
 			}
 			return;
 		}
+		
+		m_busy[chId] = true;
+		
 		static bool update_bg_model = true;
 		static int  frameCount = 0;
-		if(!frame[chId].empty())
+		if(!frameIn[chId].empty())
 		{
-		//	Uint32 t1 = OSA_getCurTimeInMsec() ;
+			//Uint32 t1 = OSA_getCurTimeInMsec() ;
 
+			frameIn[chId].copyTo(frame[chId]);
 #if 1
 			if(frame[chId].cols != m_BKWidth[chId] || frame[chId].rows != m_BKHeight[chId]){
 				if(model[chId]!= NULL)	{
@@ -694,14 +700,25 @@ void CMoveDetector_mv::maskDetectProcess(OSA_MsgHndl *pMsg)
 
 				libvibeModel_Sequential_Segmentation_8u_C1R(model[chId], frame[chId].data, fgmask[chId].data);
 				libvibeModel_Sequential_Update_8u_C1R(model[chId], frame[chId].data, fgmask[chId].data);
-
+/*
 				cv::Mat dispMat;
 				cvtColor(fgmask[chId], dispMat, CV_GRAY2BGR);
 				imshow("Binary", dispMat);
-				waitKey(1);
+				waitKey(1);*/
 
 				cv::Mat element = getStructuringElement(MORPH_ELLIPSE, Size(5,5));
-				cv::dilate(fgmask[chId], fgmask[chId], element);
+				cv::Mat srcMask[2];
+				for(k=0; k<2; k++){
+					if(k==0){
+						srcMask[k] = fgmask[chId](Rect(0,0, fgmask[chId].cols, fgmask[chId].rows>>1));
+					}else if(k==1){
+						srcMask[k] = fgmask[chId](Rect(0, fgmask[chId].rows>>1, fgmask[chId].cols, fgmask[chId].rows>>1));
+					}
+				}
+#pragma omp parallel for
+				for(k=0; k<2; k++){
+					cv::dilate(srcMask[k], srcMask[k], element);
+				}
 			}
 #else
 			frameCount++;
@@ -713,7 +730,7 @@ void CMoveDetector_mv::maskDetectProcess(OSA_MsgHndl *pMsg)
 			
 		//OSA_printf("%s:delt_t1=%d\n",__func__, OSA_getCurTimeInMsec() - t1);
 
-			int k;
+
 			cv::Mat BGMask[2];
 			CPostDetect* pMVObj[2];
 			for(k=0; k<2; k++){
@@ -756,7 +773,7 @@ void CMoveDetector_mv::maskDetectProcess(OSA_MsgHndl *pMsg)
 						m_postDetect[chId].DrawWarnTarget(disframe[chId], m_movTarget[chId]);
 					}
 				}
-				else if(	(m_warnMode[chId] & WARN_INVADE_MODE)  || (m_warnMode[chId] & WARN_LOST_MODE)	 || (m_warnMode[chId] & WARN_INVAD_LOST_MODE))//lost or invade detect
+				else if(	(m_warnMode[chId] & WARN_WARN_MODE))
 				{
 					m_postDetect[chId].warnTargetSelect_New(tmpMVTarget);
 					m_postDetect[chId].SetTargetBGFGTrk();
@@ -794,6 +811,7 @@ void CMoveDetector_mv::maskDetectProcess(OSA_MsgHndl *pMsg)
 				{
 					(*m_notifyFunc)(m_context, chId);
 				}
+				//OSA_printf("%s:delt_t2=%d\n",__func__, OSA_getCurTimeInMsec() - t1);
 		}
 		
 	}
@@ -813,6 +831,7 @@ void CMoveDetector_mv::maskDetectProcess(OSA_MsgHndl *pMsg)
 			}
 		}
 	}
+	m_busy[chId] = false;
 }
 
 }

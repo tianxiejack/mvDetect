@@ -5,7 +5,7 @@
 #include <opencv2/highgui/highgui.hpp>
 
 #define		TRK_TG_NUM				10
-#define  	SAMPLE_NUMBER 	512
+#define  	SAMPLE_NUMBER 	256
 #define		DETECTOR_NUM		1
 
 #define ASSERT			CV_Assert
@@ -45,9 +45,11 @@ typedef	enum{
 typedef	enum{
 	WARN_MOVEDETECT_MODE		=	0x01,
 	WARN_BOUNDARY_MODE			=	0x02,
-	WARN_INVADE_MODE					=	0x04,
-	WARN_LOST_MODE						=	0x08,
-	WARN_INVAD_LOST_MODE		=	0x10,
+//	WARN_INVADE_MODE					=	0x04,
+//	WARN_LOST_MODE						=	0x08,
+//	WARN_INVAD_LOST_MODE		=	0x10,
+	WARN_WARN_MODE				= 0x04,
+
 	WARN_TRACK_MODE					=	0x20,
 }WARN_MODE;
 

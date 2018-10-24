@@ -229,7 +229,7 @@ void	CBGFGTracker::TrackProcess(Pattern  *curPatterns,	 int	numPatterns)
 {
 	int	i,	k;
 	TRK_RECT_INFO	*pTrkInfo;
-	CV_Assert(numPatterns<SAMPLE_NUMBER);
+	CV_Assert(numPatterns<=SAMPLE_NUMBER);
 	for(i=0;i<numPatterns;	i++)
 	{
 		curPatterns[i].bValid	= true;
