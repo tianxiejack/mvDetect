@@ -119,14 +119,18 @@ BOOL  CPostDetect::GetMoveDetect(LPBYTE lpBitData,int lWidth, int lHeight, int i
 	memset(m_iRelative,0,sizeof(int)*SAMPLE_NUMBER);
 	memset(m_list,0,sizeof(int)*SAMPLE_NUMBER);
 
-//	memset(lpBitData, 0, iStride*BOL);
-//	memset(lpBitData+iStride*(lHeight-BOL), 0, iStride*BOL);
+	Mat origImage = Mat(lHeight,lWidth,CV_8UC1,lpBitData);
+	Mat thresh ;
+	origImage.copyTo(thresh);
+
+	memset(thresh.data, 0, iStride*BOL);
+	memset(thresh.data+iStride*(lHeight-BOL), 0, iStride*BOL);
 	for(int iCur=0; iCur<lHeight; iCur++){
-		memset(lpBitData+iCur*iStride, 0, BOL);
-		memset(lpBitData+iCur*iStride + lWidth - BOL, 0, BOL);
+		memset(thresh.data+iCur*iStride, 0, BOL);
+		memset(thresh.data+iCur*iStride + lWidth - BOL, 0, BOL);
 	}
 
-	Mat thresh = Mat(lHeight,lWidth,CV_8UC1,lpBitData);
+//	Mat thresh = Mat(lHeight,lWidth,CV_8UC1,lpBitData);
 	
 	vector< vector<Point> > contours;
 	vector< cv::Rect > boundRect;

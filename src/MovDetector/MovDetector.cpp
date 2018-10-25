@@ -375,8 +375,8 @@ void CMoveDetector_mv::setFrame(cv::Mat	src ,int chId,int accuracy/*2*/,int inpu
 	#endif
 
 		threshold[chId] = inputThreshold;		
-		m_postDetect[chId].InitializedMD(gray.cols, gray.rows>>1, gray.cols);
-		m_postDetect2[chId].InitializedMD(gray.cols,gray.rows>>1, gray.cols);
+		m_postDetect[chId].InitializedMD(gray.cols, (gray.rows>>1)+16, gray.cols);
+		m_postDetect2[chId].InitializedMD(gray.cols,(gray.rows>>1)+16, gray.cols);
 		if(!m_busy[chId])
 			OSA_tskSendMsg(&m_maskDetectTsk[chId], NULL, (Uint16)chId, NULL, 0);	
 		//printf("delta t4 = %d \n",OSA_getCurTimeInMsec() - t1);
@@ -758,7 +758,7 @@ void CMoveDetector_mv::maskDetectProcess(OSA_MsgHndl *pMsg)
 				tmpMVTarget.resize(nsize1+nsize2);
 				CopyTrkTarget(&m_postDetect[chId], tmpMVTarget, nsize1, 0, cv::Size(m_offsetPt[chId].x,m_offsetPt[chId].y));
 				CopyTrkTarget(&m_postDetect2[chId], tmpMVTarget, nsize2, nsize1, offsize);
-//				m_postDetect[chId].MergeDetectRegion(tmpMVTarget);
+				m_postDetect[chId].MergeDetectRegion(tmpMVTarget);
 
 				if( (m_warnMode[chId] & WARN_MOVEDETECT_MODE)	)	//move target detect
 				{
