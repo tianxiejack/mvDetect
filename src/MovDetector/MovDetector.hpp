@@ -112,7 +112,8 @@ public:
 	vibeModel_Sequential_t *model[DETECTOR_NUM];
 	int m_BKWidth[DETECTOR_NUM], m_BKHeight[DETECTOR_NUM];
 	bool statusFlag;
-
+	bool doneFlag;
+	
 protected:
 
 	std::vector<TRK_RECT_INFO>		m_warnLostTarget[DETECTOR_NUM];//丢失目标检测

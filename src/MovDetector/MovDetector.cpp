@@ -50,6 +50,7 @@ CMoveDetector_mv::CMoveDetector_mv()
 	maxArea[i] = 0;
 	}
 	statusFlag = false;
+	doneFlag = true;
 }
 
 CMoveDetector_mv::~CMoveDetector_mv()
@@ -246,6 +247,9 @@ void	CMoveDetector_mv::setNFrames(int nframes, int chId /*= 0*/)
 
 void CMoveDetector_mv::setFrame(cv::Mat	src ,int chId,int accuracy/*2*/,int inputMinArea/*8*/,int inputMaxArea/*200*/,int inputThreshold/*30*/)
 {
+	if( !statusFlag )
+		return ;
+		
 	ASSERT( 1 == src.channels());
 	ASSERT(chId >= 0 && chId < DETECTOR_NUM);
 	//UInt32 t1 = OSA_getCurTimeInMsec();
@@ -493,18 +497,26 @@ static void CopyTrkTarget(CPostDetect *pMVObj,  std::vector<TRK_RECT_INFO> &trkT
 
 bool CMoveDetector_mv::isRun()
 {
-	return statusFlag;
+	if( !statusFlag && doneFlag ) 
+		return false;
+	else
+		return true;
 }
 
 void CMoveDetector_mv::mvOpen()
 {
-	statusFlag = true;
+	if( !isRun() )
+	{
+		statusFlag = true;
+		doneFlag = false;
+	}
 }
 
 
 void CMoveDetector_mv::mvClose()
 {
-	statusFlag = false;
+	if( isRun() )
+		statusFlag = false;
 }
 
 
@@ -640,9 +652,17 @@ void CMoveDetector_mv::maskDetectProcess(OSA_MsgHndl *pMsg)
 		chId = pMsg->cmd ;
 
 		if( !isRun() )
-		{
-			if(m_movTarget[chId].size())
-				m_movTarget[chId].clear();
+		{		
+			for(int i =0;i<DETECTOR_NUM; i++)
+			{
+				if(m_movTarget[i].size())
+					m_movTarget[i].clear();
+				
+				if(m_notifyFunc != NULL)
+				{
+					(*m_notifyFunc)(m_context, chId);
+				}	
+			}
 			return ;
 		}
 		
@@ -816,21 +836,28 @@ void CMoveDetector_mv::maskDetectProcess(OSA_MsgHndl *pMsg)
 		}
 		
 	}
-	if( !isRun() ){
-		for(int i =0;i<DETECTOR_NUM; i++){
+
+	if( !statusFlag && !doneFlag )
+	{
+	
+		for(int i =0;i<DETECTOR_NUM; i++)
+		{
 			if(model[i] != NULL){
 				libvibeModel_Sequential_Free(model[i]);
-			model[i] = NULL;
+				model[i] = NULL;
 			}
 			m_BKWidth[i]  = 0;
 			m_BKHeight[i] = 0;
 			threshold[i]  = 0;
 			m_movTarget[i].clear();
+			
 			if( m_notifyFunc != NULL )
 			{
 				(*m_notifyFunc)(m_context, chId);
-			}
+			}	
 		}
+		doneFlag = true;
+		
 	}
 	m_busy[chId] = false;
 }
