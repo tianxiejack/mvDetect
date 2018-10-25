@@ -27,6 +27,7 @@ public:
 	BOOL   	InitializedMD(int lWidth, int lHeight, int lStride);
 	void		DestroyMD();
 
+	void 		MergeDetectRegion(std::vector<TRK_RECT_INFO>		&MVTarget);
 	void		MergeRect(Pattern	ptn[], int num);
 	void		setWarningRoi(std::vector<cv::Point2i>	warnRoi);
 	void		setTrkThred(TRK_THRED		trkThred);

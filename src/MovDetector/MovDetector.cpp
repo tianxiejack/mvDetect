@@ -734,7 +734,7 @@ void CMoveDetector_mv::maskDetectProcess(OSA_MsgHndl *pMsg)
 			cv::Mat BGMask[2];
 			CPostDetect* pMVObj[2];
 			for(k=0; k<2; k++){
-				BGMask[k]= cv::Mat(fgmask[chId].rows>>1, fgmask[chId].cols, CV_8UC1, fgmask[chId].data+(k*fgmask[chId].cols*(fgmask[chId].rows>>1)) );
+				BGMask[k]= cv::Mat(((fgmask[chId].rows>>1)+16), fgmask[chId].cols, CV_8UC1, fgmask[chId].data+(k*fgmask[chId].cols*( (fgmask[chId].rows>>1)-16) ) );
 			}
 			pMVObj[0] = &m_postDetect[chId];
 			pMVObj[1] = &m_postDetect2[chId];
@@ -753,11 +753,12 @@ void CMoveDetector_mv::maskDetectProcess(OSA_MsgHndl *pMsg)
 				cv::Size offsize;
 
 				offsize.width = m_offsetPt[chId].x;
-				offsize.height = (int)((fgmask[chId].rows>>1)*m_scaleY[chId]);
+				offsize.height = (int)( ((fgmask[chId].rows>>1)-16)*m_scaleY[chId]);
 				offsize.height += m_offsetPt[chId].y;
 				tmpMVTarget.resize(nsize1+nsize2);
 				CopyTrkTarget(&m_postDetect[chId], tmpMVTarget, nsize1, 0, cv::Size(m_offsetPt[chId].x,m_offsetPt[chId].y));
 				CopyTrkTarget(&m_postDetect2[chId], tmpMVTarget, nsize2, nsize1, offsize);
+//				m_postDetect[chId].MergeDetectRegion(tmpMVTarget);
 
 				if( (m_warnMode[chId] & WARN_MOVEDETECT_MODE)	)	//move target detect
 				{

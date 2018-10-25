@@ -119,8 +119,8 @@ BOOL  CPostDetect::GetMoveDetect(LPBYTE lpBitData,int lWidth, int lHeight, int i
 	memset(m_iRelative,0,sizeof(int)*SAMPLE_NUMBER);
 	memset(m_list,0,sizeof(int)*SAMPLE_NUMBER);
 
-	memset(lpBitData, 0, iStride*BOL);
-	memset(lpBitData+iStride*(lHeight-BOL), 0, iStride*BOL);
+//	memset(lpBitData, 0, iStride*BOL);
+//	memset(lpBitData+iStride*(lHeight-BOL), 0, iStride*BOL);
 	for(int iCur=0; iCur<lHeight; iCur++){
 		memset(lpBitData+iCur*iStride, 0, BOL);
 		memset(lpBitData+iCur*iStride + lWidth - BOL, 0, BOL);
@@ -216,6 +216,51 @@ void CPostDetect::MergeRect(Pattern	ptn[], int num)
 			m_patternnum++;
 		}
 	}
+}
+
+void CPostDetect::MergeDetectRegion(std::vector<TRK_RECT_INFO>		&MVTarget)
+{
+	int i, j, k,status;
+	cv::Rect	rc1,	rc2, roi;
+	int nsize = MVTarget.size();
+
+	std::vector<bool> validVector;
+	std::vector<TRK_RECT_INFO>		tmpMVTarget;
+
+	validVector.resize(nsize);
+	tmpMVTarget.resize(nsize);
+
+	for(i=0; i<nsize; i++){
+		validVector[i] = true;
+		tmpMVTarget[i] = MVTarget[i];
+	}
+	for(j=0; j<nsize;	j++){
+		if( !validVector[j] )
+			continue;
+		rc1 = tmpMVTarget[j].targetRect;
+		for(i=j+1; i<nsize;	i++){
+			if(	!validVector[i]	)
+				continue;
+			rc2 = tmpMVTarget[i].targetRect;
+			status = _bInRect(rc1, rc2, roi);
+			if(status == 1){
+				validVector[j] = false;
+			}else if(status == 2){
+				validVector[i] = false;
+			}else if(status == 0){//overlap
+				mergeOverLap(rc1,rc2,rc1);
+				tmpMVTarget[j].targetRect = rc1;
+				validVector[i] = false;
+			}
+		}
+	}
+	MVTarget.clear();
+	for(j=0; j<nsize;	j++){
+		if( validVector[j] ){
+			MVTarget.push_back( tmpMVTarget[j]);
+		}
+	}
+
 }
 
 BOOL  CPostDetect::VHDilation(LPBYTE lpBitData, int lWidth, int lHeight, int iStride)
