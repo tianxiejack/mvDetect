@@ -559,6 +559,10 @@ void	CPostDetect::warnTargetSelect_New(const std::vector<TRK_RECT_INFO>	MVTarget
 
 	m_warnTargetRec.clear();
 	nsize = MVTarget.size();
+	
+	if(nsize > SAMPLE_NUMBER)
+		nsize = SAMPLE_NUMBER;
+
 	for(i=0; i<nsize; i++){
 		cv::Rect targetRec = MVTarget[i].targetRect;
 		cv::Point2f rc_center = cv::Point2f((float)targetRec.x+targetRec.width/2.0, (float)targetRec.y+targetRec.height/2.0);

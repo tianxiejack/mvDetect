@@ -48,9 +48,12 @@ CMoveDetector_mv::CMoveDetector_mv()
 	threshold[i] = 0;
 	minArea[i] = 0;
 	maxArea[i] = 0;
+
+	statusFlag[i] = false;
+	doneFlag[i]   = true;
+		
 	}
-	statusFlag = false;
-	doneFlag = true;
+	
 }
 
 CMoveDetector_mv::~CMoveDetector_mv()
@@ -159,8 +162,11 @@ int CMoveDetector_mv::destroy()
 		threshold[i] = 0;
 		minArea[i] = 0;
 		maxArea[i] = 0;
+
+		statusFlag[i] = false;
+		doneFlag[i] = false;
 	}
-	statusFlag = false;
+	
 	return rtn;
 }
 
@@ -247,7 +253,7 @@ void	CMoveDetector_mv::setNFrames(int nframes, int chId /*= 0*/)
 
 void CMoveDetector_mv::setFrame(cv::Mat	src ,int chId,int accuracy/*2*/,int inputMinArea/*8*/,int inputMaxArea/*200*/,int inputThreshold/*30*/)
 {
-	if( !statusFlag )
+	if( !statusFlag[chId] )
 		return ;
 		
 	ASSERT( 1 == src.channels());
@@ -469,8 +475,11 @@ void	CMoveDetector_mv::getInvadeTarget(std::vector<TRK_RECT_INFO>	&resTarget,	in
 
 void	CMoveDetector_mv::getMoveTarget(std::vector<TRK_RECT_INFO>	&resTarget,	int chId /*= 0*/)
 {
-	CV_Assert(chId	<DETECTOR_NUM);
-	_copyTarget(m_movTarget[chId], resTarget);
+	CV_Assert(chId < DETECTOR_NUM);
+	if(m_warnMode[chId] == WARN_MOVEDETECT_MODE)
+		_copyTarget(m_movTarget[chId], resTarget);
+	else if(m_warnMode[chId] == WARN_WARN_MODE)
+		_copyTarget(m_warnTarget[chId], resTarget);
 }
 
 void	CMoveDetector_mv::getBoundTarget(std::vector<TRK_RECT_INFO>	&resTarget,	int chId /*= 0*/)
@@ -495,28 +504,28 @@ static void CopyTrkTarget(CPostDetect *pMVObj,  std::vector<TRK_RECT_INFO> &trkT
 	}
 }
 
-bool CMoveDetector_mv::isRun()
+bool CMoveDetector_mv::isRun(int chId)
 {
-	if( !statusFlag && doneFlag ) 
+	if( !statusFlag[chId] && doneFlag[chId] ) 
 		return false;
 	else
 		return true;
 }
 
-void CMoveDetector_mv::mvOpen()
+void CMoveDetector_mv::mvOpen(int chId)
 {
-	if( !isRun() )
+	if( !isRun(chId) )
 	{
-		statusFlag = true;
-		doneFlag = false;
+		statusFlag[chId] = true;
+		doneFlag[chId] = false;
 	}
 }
 
 
-void CMoveDetector_mv::mvClose()
+void CMoveDetector_mv::mvClose(int chId)
 {
-	if( isRun() )
-		statusFlag = false;
+	if( isRun(chId) )
+		statusFlag[chId] = false;
 }
 
 
@@ -651,18 +660,24 @@ void CMoveDetector_mv::maskDetectProcess(OSA_MsgHndl *pMsg)
 		int chId, k;
 		chId = pMsg->cmd ;
 
-		if( !isRun() )
+		if( !isRun(chId) )
 		{		
-			for(int i =0;i<DETECTOR_NUM; i++)
+			if(m_warnMode[chId] = WARN_MOVEDETECT_MODE)
 			{
-				if(m_movTarget[i].size())
-					m_movTarget[i].clear();
-				
-				if(m_notifyFunc != NULL)
-				{
-					(*m_notifyFunc)(m_context, chId);
-				}	
+				if(m_movTarget[chId].size())
+					m_movTarget[chId].clear();
 			}
+			else	if(m_warnMode[chId] = WARN_WARN_MODE)
+			{
+				if(m_warnTarget[chId].size())
+					m_warnTarget[chId].clear();
+			}
+			
+			if(m_notifyFunc != NULL)
+			{
+				(*m_notifyFunc)(m_context, chId);
+			}	
+			
 			return ;
 		}
 		
@@ -837,27 +852,27 @@ void CMoveDetector_mv::maskDetectProcess(OSA_MsgHndl *pMsg)
 		
 	}
 
-	if( !statusFlag && !doneFlag )
+	if( !statusFlag[chId] && !doneFlag[chId] )
 	{
 	
-		for(int i =0;i<DETECTOR_NUM; i++)
-		{
-			if(model[i] != NULL){
-				libvibeModel_Sequential_Free(model[i]);
-				model[i] = NULL;
-			}
-			m_BKWidth[i]  = 0;
-			m_BKHeight[i] = 0;
-			threshold[i]  = 0;
-			m_movTarget[i].clear();
-			
-			if( m_notifyFunc != NULL )
-			{
-				(*m_notifyFunc)(m_context, chId);
-			}	
+		if(model[chId] != NULL){
+			libvibeModel_Sequential_Free(model[chId]);
+			model[chId] = NULL;
 		}
-		doneFlag = true;
+		m_BKWidth[chId]  = 0;
+		m_BKHeight[chId] = 0;
+		threshold[chId]  = 0;
 		
+		if(m_warnMode[chId] == WARN_MOVEDETECT_MODE)
+			m_movTarget[chId].clear();
+		else if(m_warnMode[chId] == WARN_WARN_MODE)
+			m_warnTarget[chId].clear();
+		
+		if( m_notifyFunc != NULL )
+		{
+			(*m_notifyFunc)(m_context, chId);
+		}	
+		doneFlag[chId] = true;	
 	}
 	m_busy[chId] = false;
 }

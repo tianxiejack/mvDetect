@@ -4,8 +4,8 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
-#define		TRK_TG_NUM				10
-#define  	SAMPLE_NUMBER 	256
+#define		TRK_TG_NUM		10
+#define  		SAMPLE_NUMBER 	10
 #define		DETECTOR_NUM		10
 
 #define ASSERT			CV_Assert

@@ -115,7 +115,7 @@ void	CBGFGTracker::SetTrkTarget(const std::vector<TRK_RECT_INFO>	warnTarget)
 		bContinue = false;
 		for(j=0;j<SAMPLE_NUMBER;j++)
 		{
-			pTrkInfo	=	&m_warnTarget[j];
+			pTrkInfo = &m_warnTarget[j];
 			if(pTrkInfo->trkState	== TRK_STATE_TRACK)
 			{
 				trkRect	=	pTrkInfo->targetRect;
@@ -130,11 +130,11 @@ void	CBGFGTracker::SetTrkTarget(const std::vector<TRK_RECT_INFO>	warnTarget)
 			continue;
 		for(;i<SAMPLE_NUMBER;i++)
 		{
-			pTrkInfo	=	&m_warnTarget[i];
-			if(pTrkInfo->trkState	== TRK_STATE_IDLE)
+			pTrkInfo = &m_warnTarget[i];
+			if(pTrkInfo->trkState == TRK_STATE_IDLE)
 			{
 				*pTrkInfo	= tgtInfo;//赋值
-				pTrkInfo->trkState	=	TRK_STATE_ACQ;
+				pTrkInfo->trkState = TRK_STATE_ACQ;
 				break;
 			}
 		}
