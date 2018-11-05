@@ -253,8 +253,8 @@ void	CMoveDetector_mv::setNFrames(int nframes, int chId /*= 0*/)
 
 void CMoveDetector_mv::setFrame(cv::Mat	src ,int chId,int accuracy/*2*/,int inputMinArea/*8*/,int inputMaxArea/*200*/,int inputThreshold/*30*/)
 {
-	if( !statusFlag[chId] )
-		return ;
+	//if( !(statusFlag[chId] && !doneFlag[chId]) )
+	//	return ;
 		
 	ASSERT( 1 == src.channels());
 	ASSERT(chId >= 0 && chId < DETECTOR_NUM);
@@ -513,8 +513,8 @@ bool CMoveDetector_mv::isRun(int chId)
 }
 
 void CMoveDetector_mv::mvOpen(int chId)
-{
-	if( !isRun(chId) )
+{	
+	//if( !isRun(chId) )
 	{
 		statusFlag[chId] = true;
 		doneFlag[chId] = false;
@@ -525,7 +525,10 @@ void CMoveDetector_mv::mvOpen(int chId)
 void CMoveDetector_mv::mvClose(int chId)
 {
 	if( isRun(chId) )
+	{
 		statusFlag[chId] = false;
+		printf(" mv Close \n\n");
+	}
 }
 
 
@@ -677,7 +680,6 @@ void CMoveDetector_mv::maskDetectProcess(OSA_MsgHndl *pMsg)
 			{
 				(*m_notifyFunc)(m_context, chId);
 			}	
-			
 			return ;
 		}
 		
