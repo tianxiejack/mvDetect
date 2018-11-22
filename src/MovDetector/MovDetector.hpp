@@ -87,6 +87,8 @@ public:
 	void	getBoundTarget(std::vector<TRK_RECT_INFO>	&resTarget,	int chId	= 0);//越界目标
 	void	getWarnTarget(std::vector<TRK_RECT_INFO>	&resTarget,	int chId	= 0);//警戒区周边所有目标
 	bool	isRun(int chId);
+	bool isStopping(int chId);
+	bool isWait(int chId);
 	void	mvOpen(int chId);
 	void	mvClose(int chId);
 	

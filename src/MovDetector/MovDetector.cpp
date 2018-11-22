@@ -253,8 +253,8 @@ void	CMoveDetector_mv::setNFrames(int nframes, int chId /*= 0*/)
 
 void CMoveDetector_mv::setFrame(cv::Mat	src ,int chId,int accuracy/*2*/,int inputMinArea/*8*/,int inputMaxArea/*200*/,int inputThreshold/*30*/)
 {
-	//if( !(statusFlag[chId] && !doneFlag[chId]) )
-	//	return ;
+	if( !isRun(chId) )
+		return ;
 		
 	ASSERT( 1 == src.channels());
 	ASSERT(chId >= 0 && chId < DETECTOR_NUM);
@@ -504,17 +504,37 @@ static void CopyTrkTarget(CPostDetect *pMVObj,  std::vector<TRK_RECT_INFO> &trkT
 	}
 }
 
+
 bool CMoveDetector_mv::isRun(int chId)
 {
-	if( !statusFlag[chId] && doneFlag[chId] ) 
-		return false;
-	else
+	if( statusFlag[chId] && !doneFlag[chId] ) 
 		return true;
+	else
+		return false;
 }
+
+bool CMoveDetector_mv::isStopping(int chId)
+{
+	if( !statusFlag[chId] && !doneFlag[chId] ) 
+		return true;
+	else
+		return false;
+}
+
+bool CMoveDetector_mv::isWait(int chId)
+{
+	if( !statusFlag[chId] && doneFlag[chId] )
+		return true;
+	else
+		return false;
+}
+
+
+
 
 void CMoveDetector_mv::mvOpen(int chId)
 {	
-	//if( !isRun(chId) )
+	if( isWait(chId) )
 	{
 		statusFlag[chId] = true;
 		doneFlag[chId] = false;
@@ -663,7 +683,10 @@ void CMoveDetector_mv::maskDetectProcess(OSA_MsgHndl *pMsg)
 		int chId, k;
 		chId = pMsg->cmd ;
 
-		if( !isRun(chId) )
+		if( isWait(chId) )
+			return ;
+		
+		if( isStopping(chId) )
 		{		
 			if(m_warnMode[chId] = WARN_MOVEDETECT_MODE)
 			{
@@ -680,6 +703,9 @@ void CMoveDetector_mv::maskDetectProcess(OSA_MsgHndl *pMsg)
 			{
 				(*m_notifyFunc)(m_context, chId);
 			}	
+
+			doneFlag[chId] = true ;
+			
 			return ;
 		}
 		
@@ -737,7 +763,7 @@ void CMoveDetector_mv::maskDetectProcess(OSA_MsgHndl *pMsg)
 
 				libvibeModel_Sequential_Segmentation_8u_C1R(model[chId], frame[chId].data, fgmask[chId].data);
 				libvibeModel_Sequential_Update_8u_C1R(model[chId], frame[chId].data, fgmask[chId].data);
-/*
+				/*
 				cv::Mat dispMat;
 				cvtColor(fgmask[chId], dispMat, CV_GRAY2BGR);
 				imshow("Binary", dispMat);
@@ -854,7 +880,7 @@ void CMoveDetector_mv::maskDetectProcess(OSA_MsgHndl *pMsg)
 		
 	}
 
-	if( !statusFlag[chId] && !doneFlag[chId] )
+	if( isStopping(chId) )
 	{
 	
 		if(model[chId] != NULL){
