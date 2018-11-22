@@ -31,6 +31,8 @@ public:
 	virtual void 	setUpdateFactor(const uint32_t updateFactor, int chId = 0){};
 	virtual bool  	getFrameMV(cv::Mat preFrame, cv::Mat curFrame, cv::Point2f  &pt){return false;};
 	virtual bool	isRun(int chId){};
+	virtual bool	isWait(int chId){};
+	virtual bool	isStopping(int chId){};
 	virtual void	mvOpen(int chId){};
 	virtual void	mvClose(int chId){};
 };

@@ -252,10 +252,7 @@ void	CMoveDetector_mv::setNFrames(int nframes, int chId /*= 0*/)
 #endif
 
 void CMoveDetector_mv::setFrame(cv::Mat	src ,int chId,int accuracy/*2*/,int inputMinArea/*8*/,int inputMaxArea/*200*/,int inputThreshold/*30*/)
-{
-	if( !isRun(chId) )
-		return ;
-		
+{	
 	ASSERT( 1 == src.channels());
 	ASSERT(chId >= 0 && chId < DETECTOR_NUM);
 	//UInt32 t1 = OSA_getCurTimeInMsec();
@@ -523,6 +520,8 @@ bool CMoveDetector_mv::isStopping(int chId)
 
 bool CMoveDetector_mv::isWait(int chId)
 {
+	
+	printf("statusFlag , doneFlag = (%d  , %d )\n", statusFlag[chId],doneFlag[chId] );
 	if( !statusFlag[chId] && doneFlag[chId] )
 		return true;
 	else
@@ -547,7 +546,8 @@ void CMoveDetector_mv::mvClose(int chId)
 	if( isRun(chId) )
 	{
 		statusFlag[chId] = false;
-		printf(" mv Close \n\n");
+		if(!m_busy[chId])
+			OSA_tskSendMsg(&m_maskDetectTsk[chId], NULL, (Uint16)chId, NULL, 0);	
 	}
 }
 
@@ -682,11 +682,8 @@ void CMoveDetector_mv::maskDetectProcess(OSA_MsgHndl *pMsg)
 {	
 		int chId, k;
 		chId = pMsg->cmd ;
-
-		if( isWait(chId) )
-			return ;
 		
-		if( isStopping(chId) )
+		if( isWait(chId) )
 		{		
 			if(m_warnMode[chId] = WARN_MOVEDETECT_MODE)
 			{
@@ -702,12 +699,35 @@ void CMoveDetector_mv::maskDetectProcess(OSA_MsgHndl *pMsg)
 			if(m_notifyFunc != NULL)
 			{
 				(*m_notifyFunc)(m_context, chId);
-			}	
-
-			doneFlag[chId] = true ;
-			
+			}				
 			return ;
 		}
+
+		if( isStopping(chId) )
+		{
+		
+			if(model[chId] != NULL){
+				libvibeModel_Sequential_Free(model[chId]);
+				model[chId] = NULL;
+			}
+			m_BKWidth[chId]  = 0;
+			m_BKHeight[chId] = 0;
+			threshold[chId]  = 0;
+			
+			if(m_warnMode[chId] == WARN_MOVEDETECT_MODE)
+				m_movTarget[chId].clear();
+			else if(m_warnMode[chId] == WARN_WARN_MODE)
+				m_warnTarget[chId].clear();
+			
+			if( m_notifyFunc != NULL )
+			{
+				(*m_notifyFunc)(m_context, chId);
+			}	
+			doneFlag[chId] = true;	
+			return ;
+		}
+
+		
 		
 		CV_Assert(chId < DETECTOR_NUM);
 		if(m_bExit)
