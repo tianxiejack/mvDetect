@@ -253,7 +253,6 @@ void	CMoveDetector_mv::setNFrames(int nframes, int chId /*= 0*/)
 
 void CMoveDetector_mv::setFrame(cv::Mat	src ,int chId,int accuracy/*2*/,int inputMinArea/*8*/,int inputMaxArea/*200*/,int inputThreshold/*30*/)
 {	
-	printf("setFrame  setFrame  setFrame \n\n");
 	ASSERT( 1 == src.channels());
 	ASSERT(chId >= 0 && chId < DETECTOR_NUM);
 	//UInt32 t1 = OSA_getCurTimeInMsec();
@@ -387,7 +386,6 @@ void CMoveDetector_mv::setFrame(cv::Mat	src ,int chId,int accuracy/*2*/,int inpu
 		m_postDetect2[chId].InitializedMD(gray.cols,(gray.rows>>1)+16, gray.cols);
 		if(!m_busy[chId])
 		{	
-			printf("not busy  and  send task  \n\n");
 			OSA_tskSendMsg(&m_maskDetectTsk[chId], NULL, (Uint16)chId, NULL, 0);	
 		}
 		//printf("delta t4 = %d \n",OSA_getCurTimeInMsec() - t1);
