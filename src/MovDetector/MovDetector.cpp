@@ -32,6 +32,7 @@ CMoveDetector_mv::CMoveDetector_mv()
 		m_offsetPt[i] = cv::Point(0, 0);
 		m_bInterval[i] = 0;
 		m_busy[i] = false;
+		frameIndex[i] = 0;
 	}
 	m_notifyFunc = NULL;
 	m_context = NULL;
@@ -404,6 +405,14 @@ void	CMoveDetector_mv::setWarningRoi(std::vector<cv::Point2i>	warnRoi,	int chId	
 		}
 		m_postDetect[chId].setWarningRoi(warnRoi); // warn roi is disanormal
 		m_postDetect2[chId].setWarningRoi(warnRoi);
+
+		m_warnTarget[chId].clear();
+		m_movTarget[chId].clear();
+		if(m_notifyFunc != NULL)
+		{
+			(*m_notifyFunc)(m_context, chId);
+		}
+			
 	}else{
 		OSA_printf("%s: warning	roi	point	num=%d < 3\n", __func__,	npoint);
 	}
@@ -475,6 +484,9 @@ void	CMoveDetector_mv::getInvadeTarget(std::vector<TRK_RECT_INFO>	&resTarget,	in
 void	CMoveDetector_mv::getMoveTarget(std::vector<TRK_RECT_INFO>	&resTarget,	int chId /*= 0*/)
 {
 	CV_Assert(chId < DETECTOR_NUM);
+	if(frameIndex[chId] < 20)
+		return ;
+		
 	if(m_warnMode[chId] == WARN_MOVEDETECT_MODE)
 		_copyTarget(m_movTarget[chId], resTarget);
 	else if(m_warnMode[chId] == WARN_WARN_MODE)
@@ -490,7 +502,10 @@ void	CMoveDetector_mv::getBoundTarget(std::vector<TRK_RECT_INFO>	&resTarget,	int
 void	CMoveDetector_mv::getWarnTarget(std::vector<TRK_RECT_INFO>	&resTarget,	int chId	/*= 0*/)
 {
 	CV_Assert(chId	<DETECTOR_NUM);
-		_copyTarget(m_warnTarget[chId], resTarget);
+	if(frameIndex[chId] < 20)
+		return ;
+	
+	_copyTarget(m_warnTarget[chId], resTarget);
 }
 
 static void CopyTrkTarget(CPostDetect *pMVObj,  std::vector<TRK_RECT_INFO> &trkTarget, int nsize, int offIdx, cv::Size offsize)
@@ -507,7 +522,10 @@ static void CopyTrkTarget(CPostDetect *pMVObj,  std::vector<TRK_RECT_INFO> &trkT
 bool CMoveDetector_mv::isRun(int chId)
 {
 	if( statusFlag[chId] && !doneFlag[chId] ) 
+	{
+		frameIndex[chId] = 0;
 		return true;
+	}
 	else
 		return false;
 }
@@ -682,7 +700,8 @@ void CMoveDetector_mv::maskDetectProcess(OSA_MsgHndl *pMsg)
 {	
 	int chId, k;
 	chId = pMsg->cmd ;
-			
+	frameIndex[chId]++;
+	
 	if( isWait(chId) )
 	{		
 		return ;

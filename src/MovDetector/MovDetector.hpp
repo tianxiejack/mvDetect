@@ -152,6 +152,7 @@ private:
 	cv::Point	m_offsetPt[DETECTOR_NUM];
 	int			m_bInterval[DETECTOR_NUM];
 	bool 		m_busy[DETECTOR_NUM];
+	char 	frameIndex[DETECTOR_NUM];
 
 };
 }
