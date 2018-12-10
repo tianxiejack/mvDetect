@@ -589,7 +589,7 @@ void	CPostDetect::warnTargetSelect_New(const std::vector<TRK_RECT_INFO>	MVTarget
 			m_warnTargetRec.push_back(curInfo);
 		}else if(/*distance>= -maxd	&&	*/distance<=	-mind	){
 			curInfo.targetType = TARGET_OUT_POLYGON;
-			m_warnTargetRec.push_back(curInfo);
+			//m_warnTargetRec.push_back(curInfo);
 		}else{
 			curInfo.targetType = TARGET_NORAM;
 			m_warnTargetRec.push_back(curInfo);
