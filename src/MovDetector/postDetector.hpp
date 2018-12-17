@@ -10,6 +10,8 @@
 #include "infoHead.h"
 #include "BGFGTrack.hpp"
 
+#include "vibe-background-sequential.h"
+
 using namespace cv;
 using namespace std;
 using namespace mv_detect;
@@ -52,6 +54,7 @@ public:
 	void		DrawBGFGTarget(cv::Mat	frame);
 	int			GetWarnState(){return m_warnState;};
 	void 		validTarget(std::vector<TRK_RECT_INFO>	TmpMVTarget, std::vector<TRK_RECT_INFO>	&MVTarget);
+	void		WarnTargetValidAnalyse(std::vector<TRK_RECT_INFO> &warnTarget,vibeModel_Sequential_t *model,const uint8_t *image_data);
 
 public:
 	Pattern  *m_pPatterns;

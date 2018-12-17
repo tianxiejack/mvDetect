@@ -844,6 +844,8 @@ void CMoveDetector_mv::maskDetectProcess(OSA_MsgHndl *pMsg)
 				//m_postDetect[chId].TargetBGFGAnalyse();
 				m_postDetect[chId].GetBGFGTarget(m_warnLostTarget[chId], m_warnInvadeTarget[chId], m_warnTarget[chId]);
 
+				m_postDetect[chId].WarnTargetValidAnalyse(m_warnTarget[chId],model[chId],frame[chId].data);
+				
 				if(m_bSelfDraw[chId] && !disframe[chId].empty())
 				{
 					int	npoint	= m_warnRoiVec[chId].size();

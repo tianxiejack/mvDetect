@@ -287,6 +287,16 @@ int32_t libvibeModel_Sequential_Update_8u_C3R(
   uint8_t *updating_mask
 );
 
+
+/*
+int32_t libvibeModel_Sequential_Update_part(
+  vibeModel_Sequential_t *model,
+  const uint8_t *image_data,
+  cv::Rect targetRect
+);
+*/
+
+
 #ifdef __cplusplus
 }
 #endif

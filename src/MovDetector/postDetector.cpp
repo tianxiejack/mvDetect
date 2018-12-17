@@ -659,6 +659,44 @@ void	CPostDetect::WarnTargetBGFGTrk_New()
 	m_bgfgTrack.TrackProcess(m_pPatterns,	m_patternnum);
 }
 
+void CPostDetect::WarnTargetValidAnalyse(std::vector<TRK_RECT_INFO> &warnTarget,vibeModel_Sequential_t *model,const uint8_t *image_data)
+{
+	bool reflag ;
+	int nsize = warnTarget.size();
+	for(int i = 0; i < nsize ; i++ )
+	{
+		std::vector<cv::Rect>::iterator tmp;
+		std::vector<cv::Rect>::iterator iter;
+		iter = warnTarget[i].targetVector.begin();
+		int x =  (*iter).x;
+		int y =  (*iter).y;
+		int w =  (*iter).width;
+		int h =  (*iter).height;
+		reflag = false;
+		for( iter = warnTarget[i].targetVector.begin() + 1 ; iter != warnTarget[i].targetVector.end() ;  ++iter)
+		{
+			if( (x == (*iter).x) && (y == (*iter).y) && ( w == (*iter).width ) && ( h == (*iter).height) )
+			{
+				continue;
+			}
+			else
+			{
+				reflag = true;
+				break;
+			}
+		}
+
+		if(!reflag)
+		{
+			tmp = iter;
+			//libvibeModel_Sequential_Update_part(model,image_data,(*tmp));
+			warnTarget.at(i).targetVector.erase(tmp);
+		}
+
+	}
+}
+
+
 void	CPostDetect::TargetBGFGAnalyse()
 {
 	m_warnState	=	m_bgfgTrack.TrackAnalyse(m_warnRoi);
