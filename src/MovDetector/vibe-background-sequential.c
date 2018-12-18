@@ -948,3 +948,46 @@ int32_t libvibeModel_Sequential_Update_8u_C3R(
 
   return(0);
 }
+
+
+int32_t libvibeModel_Sequential_Update_8u_C3R_part(
+  vibeModel_Sequential_t *model,
+  const uint8_t *image_data,
+  int targetRectx,
+  int targetRecty,
+  int targetRectWidth,
+  int targetRectHeight
+)
+{
+	/* Basic checks . */
+	assert((image_data != NULL) && (model != NULL));
+	assert((model->width > 0) && (model->height > 0));
+	assert(model->historyBuffer != NULL);
+	assert((model->jump != NULL) && (model->neighbor != NULL) && (model->position != NULL));
+
+	/* Some variables. */
+	uint32_t width = model->width;
+	uint32_t height = model->height;
+
+	uint8_t *historyImage = model->historyImage;
+	uint8_t *historyBuffer = model->historyBuffer;
+
+	 /* Some utility variable. */
+	int numberOfTests = (model->numberOfSamples - NUMBER_OF_HISTORY_IMAGES);
+
+	int x = targetRectx; 
+	int y = targetRecty;
+	int w= targetRectWidth;
+	int h = targetRectHeight;
+	for(int i = y; i < y+height ;i++)
+	{
+		memcpy(historyImage+x + i*width,image_data + x + i*width , w);
+		memcpy(historyImage + width*height +x + i*width,image_data + x + i*width , w);
+	}
+
+	for(int j = 0 ; j <numberOfTests;j++)
+		for(int i = y; i < y+height ;i++)
+			memcpy(historyImage + j*width*height +x + i*width,image_data + x + i*width , w);
+
+}
+

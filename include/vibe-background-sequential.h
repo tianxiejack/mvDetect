@@ -288,13 +288,15 @@ int32_t libvibeModel_Sequential_Update_8u_C3R(
 );
 
 
-/*
-int32_t libvibeModel_Sequential_Update_part(
+int32_t libvibeModel_Sequential_Update_8u_C3R_part(
   vibeModel_Sequential_t *model,
   const uint8_t *image_data,
-  cv::Rect targetRect
+  int targetRectx,
+  int targetRecty,
+  int targetRectWidth,
+  int targetRectHeight
 );
-*/
+
 
 
 #ifdef __cplusplus

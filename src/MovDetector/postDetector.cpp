@@ -689,7 +689,7 @@ void CPostDetect::WarnTargetValidAnalyse(std::vector<TRK_RECT_INFO> &warnTarget,
 		if(!reflag)
 		{
 			tmp = iter;
-			//libvibeModel_Sequential_Update_part(model,image_data,(*tmp));
+			libvibeModel_Sequential_Update_8u_C3R_part(model,image_data,(*tmp).x,(*tmp).y,(*tmp).width,(*tmp).height);
 			warnTarget.at(i).targetVector.erase(tmp);
 		}
 
