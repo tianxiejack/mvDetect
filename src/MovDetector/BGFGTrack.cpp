@@ -303,6 +303,8 @@ void	CBGFGTracker::ClearTrkTarget(int	Idx)
 	pTrkInfo->trk_frames = 0;
 	pTrkInfo->disp_frames	= 0;
 	pTrkInfo->lost_frames = 0;
+	
+	pTrkInfo->targetVector.clear();
 }
 
 int	CBGFGTracker::TrackAnalyse(std::vector<cv::Point2i>		warnRoi)

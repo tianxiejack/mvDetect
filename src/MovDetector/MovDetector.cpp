@@ -854,6 +854,7 @@ void CMoveDetector_mv::maskDetectProcess(OSA_MsgHndl *pMsg)
 						line(disframe[chId], m_warnRoiVec[chId][i], m_warnRoiVec[chId][(i+1)%npoint], cvScalar(0,0,255,255), 4, 8);
 					}
 					m_postDetect[chId].DrawBGFGTarget(disframe[chId]);
+					m_postDetect[chId].DrawLOSTTarget(disframe[chId]);
 				}
 			}
 			else if( (m_warnMode[chId] & WARN_TRACK_MODE) )

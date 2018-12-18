@@ -675,6 +675,8 @@ void CPostDetect::WarnTargetValidAnalyse(std::vector<TRK_RECT_INFO> &warnTarget,
 		int w =  (*iter).width;
 		int h =  (*iter).height;
 		reflag = false;
+		
+		if(warnTarget[i].targetVector.size() > 6)
 		for( iter = warnTarget[i].targetVector.begin() + 1 ; iter != warnTarget[i].targetVector.end() ;  ++iter)
 		{
 			if( (x == (*iter).x) && (y == (*iter).y) && ( w == (*iter).width ) && ( h == (*iter).height) )
@@ -698,7 +700,8 @@ void CPostDetect::WarnTargetValidAnalyse(std::vector<TRK_RECT_INFO> &warnTarget,
 			pTmp.disp_frames = 5;
 			debugLostTarget.push_back(pTmp);
 
-			warnTarget[i].targetVector.erase(tmp);
+			m_bgfgTrack.ClearTrkTarget(warnTarget[i].index);
+			warnTarget.erase(warnTarget.begin() + i);
 		}
 	}
 }
@@ -719,7 +722,7 @@ void	CPostDetect::DrawBGFGTarget(cv::Mat	frame)
 	m_bgfgTrack.DrawWarnTarget(frame);
 }
 
-void	CPostDetect::DrawLOSTTarget(cv::Mat	frame,std::vector<LOST_RECT_INFO> &lostTarget)
+void	CPostDetect::DrawLOSTTarget(cv::Mat	frame)
 {
-	m_bgfgTrack.DrawLostarget(frame,lostTarget);
+	m_bgfgTrack.DrawLostTarget(frame,debugLostTarget);
 }

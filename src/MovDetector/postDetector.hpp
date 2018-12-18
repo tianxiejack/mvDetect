@@ -56,7 +56,7 @@ public:
 	void 		validTarget(std::vector<TRK_RECT_INFO>	TmpMVTarget, std::vector<TRK_RECT_INFO>	&MVTarget);
 	void		WarnTargetValidAnalyse(std::vector<TRK_RECT_INFO> &warnTarget,vibeModel_Sequential_t *model,const uint8_t *image_data);
 
-	void		DrawLOSTTarget(cv::Mat	frame,std::vector<LOST_RECT_INFO> &lostTarget);
+	void		DrawLOSTTarget(cv::Mat	frame);
 	
 public:
 	Pattern  *m_pPatterns;
