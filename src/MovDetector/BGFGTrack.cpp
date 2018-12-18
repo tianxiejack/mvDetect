@@ -277,11 +277,11 @@ void	CBGFGTracker::TrackProcess(Pattern  *curPatterns,	 int	numPatterns)
 
 				#if 1
 					if(pTrkInfo->trk_frames < 10)
-						memcpy(&pTrkInfo->targetVector[pTrkInfo->trk_frames],pTrkInfo->targetRect,sizeof(cv::Rect));
+						memcpy(&pTrkInfo->targetVector[pTrkInfo->trk_frames],&pTrkInfo->targetRect,sizeof(cv::Rect));
 					else
 					{
 						memcpy(pTrkInfo->targetVector,&pTrkInfo->targetVector[1],9*sizeof(cv::Rect));
-						memcpy(&pTrkInfo->targetVector[9],pTrkInfo->targetRect,sizeof(cv::Rect));
+						memcpy(&pTrkInfo->targetVector[9],&pTrkInfo->targetRect,sizeof(cv::Rect));
 					}
 				#endif
 				

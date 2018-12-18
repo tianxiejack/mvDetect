@@ -661,29 +661,27 @@ void	CPostDetect::WarnTargetBGFGTrk_New()
 	m_bgfgTrack.TrackProcess(m_pPatterns,	m_patternnum);
 }
 
-#if 0
+#if 1
 void CPostDetect::WarnTargetValidAnalyse(std::vector<TRK_RECT_INFO> &warnTarget,vibeModel_Sequential_t *model,const uint8_t *image_data)
 {
 	bool reflag ;
 	int nsize = warnTarget.size();
+		
 	for(int i = 0; i < nsize ; i++ )
 	{
-		std::vector<cv::Rect>::iterator tmp;
-		std::vector<cv::Rect>::iterator iter;
-		iter = warnTarget[i].targetVector.begin();
-		int x =  (*iter).x;
-		int y =  (*iter).y;
-		int w =  (*iter).width;
-		int h =  (*iter).height;
 		reflag = false;
+
+		int x =  warnTarget[i].targetVector[0].x;
+		int y =  warnTarget[i].targetVector[0].y;
+		int w =  warnTarget[i].targetVector[0].width;
+		int h =  warnTarget[i].targetVector[0].height;
 		
-		if(warnTarget[i].targetVector.size() > 6)
-		for( iter = warnTarget[i].targetVector.begin() + 1 ; iter != warnTarget[i].targetVector.end() ;  ++iter)
+		if(warnTarget[i].trk_frames > 9)
+		for( int j = 1 ; j < 10 ;  ++j )
 		{
-			if( (x == (*iter).x) && (y == (*iter).y) && ( w == (*iter).width ) && ( h == (*iter).height) )
-			{
+			if( (x == warnTarget[i].targetVector[j].x) && (y == warnTarget[i].targetVector[j].y)
+				&& ( w == warnTarget[i].targetVector[j].width ) && ( h == warnTarget[i].targetVector[j].height) )
 				continue;
-			}
 			else
 			{
 				reflag = true;
@@ -693,11 +691,10 @@ void CPostDetect::WarnTargetValidAnalyse(std::vector<TRK_RECT_INFO> &warnTarget,
 
 		if(!reflag)
 		{
-			tmp = iter;
-			libvibeModel_Sequential_Update_8u_C3R_part(model,image_data,(*tmp).x,(*tmp).y,(*tmp).width,(*tmp).height);
+			libvibeModel_Sequential_Update_8u_C3R_part(model,image_data,x,y,w,h);
 
 			LOST_RECT_INFO pTmp;
-			pTmp.targetRect = (*tmp);
+			memcpy(&pTmp.targetRect,&warnTarget[i].targetVector[0],sizeof(cv::Rect));
 			pTmp.disp_frames = 5;
 			debugLostTarget.push_back(pTmp);
 
