@@ -19,6 +19,7 @@ CBGFGTracker::CBGFGTracker()
 	m_thredParam.targetSize	= 120;
 	m_thredParam.distRoi = 2.0;
 
+	lostTargetBK.clear();
 }
 
 CBGFGTracker::~CBGFGTracker()
@@ -432,9 +433,42 @@ static void _drawWarn(cv::Mat frame, TRK_RECT_INFO *warnTarget, bool bshow)
 	}
 }
 
+
+static void _drawWarnLost(cv::Mat frame, std::vector<LOST_RECT_INFO> &lostTarget, bool bshow)
+{
+	int	k;
+	cv::Scalar	color;
+	unsigned char fcolor = bshow?0xFF:0x00;
+
+	color	= cv::Scalar(0xA0,0xA0,0xA0, fcolor);
+
+	for(k=0;k<lostTarget.size();k++)
+	{
+		cv::Rect result = lostTarget[k].targetRect;
+		rectangle( frame, cv::Point( result.x, result.y ), cv::Point( result.x+result.width, result.y+result.height), color, 4, 8 );
+		if(bshow == true)
+		{
+			lostTarget[k].disp_frames--;
+		}
+		else
+		{
+			if(lostTarget[k].disp_frames == 0)
+				lostTarget.erase(lostTarget.begin() + k);
+		}
+	}
+}
+
 void	CBGFGTracker::DrawWarnTarget(cv::Mat	frame)
 {
 	_drawWarn(frame, m_warnTargetBK, false);
 	_drawWarn(frame, m_warnTarget, true);
 	memcpy(m_warnTargetBK, m_warnTarget, sizeof(TRK_RECT_INFO)*SAMPLE_NUMBER);
+}
+
+void	CBGFGTracker::DrawLostTarget(cv::Mat	frame,std::vector<LOST_RECT_INFO> &lostTarget)
+{
+	_drawWarnLost(frame, lostTargetBK, false);
+	_drawWarnLost(frame, lostTarget, true);
+	lostTargetBK = lostTarget ;
+
 }

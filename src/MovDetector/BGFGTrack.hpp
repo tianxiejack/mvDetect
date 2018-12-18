@@ -26,7 +26,8 @@ public:
 
 	void	SetTrkThred(TRK_THRED	 trkThred);
 	void	DrawWarnTarget(cv::Mat	frame);
-
+	void	DrawLostTarget(cv::Mat	frame,std::vector<LOST_RECT_INFO> &lostTarget);
+	
 public:
 
 	TRK_RECT_INFO		m_warnTarget[SAMPLE_NUMBER];
@@ -35,6 +36,8 @@ public:
 	CKalman_mv* m_pKalmanProc;
 	double*  m_pMeasure;
 	double*  m_pControl;
+
+	std::vector<LOST_RECT_INFO>  lostTargetBK;
 
 protected:
 	TRK_THRED		m_thredParam;

@@ -77,6 +77,12 @@ typedef	struct	 _trk_rect_t{
 }TRK_RECT_INFO;
 
 
+typedef	struct	 _lost_rect_t{
+	cv::Rect							targetRect;
+	int									disp_frames;
+}LOST_RECT_INFO;
+
+
 typedef	struct _trk_thred_t{
 	float		searchThed;	//搜素重叠系数0.2
 	float		trkThred;		//跟踪重叠系数0.2

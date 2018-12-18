@@ -17,6 +17,8 @@ CPostDetect::CPostDetect():m_pPatterns (NULL),m_ptemp(NULL),m_pBitData (NULL)
 	warnTargetBK.clear();
 	m_edgeTargetRec.clear();
 	m_warnState	=  WARN_STATE_IDLE;
+
+	debugLostTarget.clear();
 }
 
 CPostDetect::~CPostDetect()
@@ -690,9 +692,14 @@ void CPostDetect::WarnTargetValidAnalyse(std::vector<TRK_RECT_INFO> &warnTarget,
 		{
 			tmp = iter;
 			libvibeModel_Sequential_Update_8u_C3R_part(model,image_data,(*tmp).x,(*tmp).y,(*tmp).width,(*tmp).height);
-			warnTarget.at(i).targetVector.erase(tmp);
-		}
 
+			LOST_RECT_INFO pTmp;
+			pTmp.targetRect = (*tmp);
+			pTmp.disp_frames = 5;
+			debugLostTarget.push_back(pTmp);
+
+			warnTarget[i].targetVector.erase(tmp);
+		}
 	}
 }
 
@@ -710,4 +717,9 @@ void	CPostDetect::GetBGFGTarget(std::vector<TRK_RECT_INFO> &lostTarget, std::vec
 void	CPostDetect::DrawBGFGTarget(cv::Mat	frame)
 {
 	m_bgfgTrack.DrawWarnTarget(frame);
+}
+
+void	CPostDetect::DrawLOSTTarget(cv::Mat	frame,std::vector<LOST_RECT_INFO> &lostTarget)
+{
+	m_bgfgTrack.DrawLostarget(frame,lostTarget);
 }
