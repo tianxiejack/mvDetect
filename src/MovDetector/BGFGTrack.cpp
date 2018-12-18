@@ -275,14 +275,16 @@ void	CBGFGTracker::TrackProcess(Pattern  *curPatterns,	 int	numPatterns)
 					pTrkInfo	= &m_warnTarget[maxIdx];
 					pTrkInfo->targetRect	= cv::Rect(pPat->lefttop.x,	pPat->lefttop.y, pPat->rightbottom.x-pPat->lefttop.x,	pPat->rightbottom.y-pPat->lefttop.y);
 
-					if(pTrkInfo->targetVector.size() < 8)
-						pTrkInfo->targetVector.push_back(pTrkInfo->targetRect);
+				#if 1
+					if(pTrkInfo->trk_frames < 10)
+						memcpy(&pTrkInfo->targetVector[pTrkInfo->trk_frames],pTrkInfo->targetRect,sizeof(cv::Rect));
 					else
 					{
-						pTrkInfo->targetVector.erase(pTrkInfo->targetVector.begin());
-						pTrkInfo->targetVector.push_back(pTrkInfo->targetRect);
+						memcpy(pTrkInfo->targetVector,&pTrkInfo->targetVector[1],9*sizeof(cv::Rect));
+						memcpy(&pTrkInfo->targetVector[9],pTrkInfo->targetRect,sizeof(cv::Rect));
 					}
-						
+				#endif
+				
 				}else{
 					pTrkInfo	= &m_warnTarget[pPat->IdxVec[k]];
 					pTrkInfo->lost_frames++;
@@ -304,7 +306,7 @@ void	CBGFGTracker::ClearTrkTarget(int	Idx)
 	pTrkInfo->disp_frames	= 0;
 	pTrkInfo->lost_frames = 0;
 	
-	pTrkInfo->targetVector.clear();
+	memcpy(pTrkInfo->targetVector,0,10*sizeof(cv::Rect));
 }
 
 int	CBGFGTracker::TrackAnalyse(std::vector<cv::Point2i>		warnRoi)

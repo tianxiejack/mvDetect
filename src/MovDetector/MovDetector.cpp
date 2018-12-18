@@ -844,7 +844,7 @@ void CMoveDetector_mv::maskDetectProcess(OSA_MsgHndl *pMsg)
 				//m_postDetect[chId].TargetBGFGAnalyse();
 				m_postDetect[chId].GetBGFGTarget(m_warnLostTarget[chId], m_warnInvadeTarget[chId], m_warnTarget[chId]);
 
-				m_postDetect[chId].WarnTargetValidAnalyse(m_warnTarget[chId],model[chId],frame[chId].data);
+				//m_postDetect[chId].WarnTargetValidAnalyse(m_warnTarget[chId],model[chId],frame[chId].data);
 				
 				if(m_bSelfDraw[chId] && !disframe[chId].empty())
 				{
@@ -854,7 +854,7 @@ void CMoveDetector_mv::maskDetectProcess(OSA_MsgHndl *pMsg)
 						line(disframe[chId], m_warnRoiVec[chId][i], m_warnRoiVec[chId][(i+1)%npoint], cvScalar(0,0,255,255), 4, 8);
 					}
 					m_postDetect[chId].DrawBGFGTarget(disframe[chId]);
-					m_postDetect[chId].DrawLOSTTarget(disframe[chId]);
+				//	m_postDetect[chId].DrawLOSTTarget(disframe[chId]);
 				}
 			}
 			else if( (m_warnMode[chId] & WARN_TRACK_MODE) )

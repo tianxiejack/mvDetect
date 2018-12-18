@@ -73,7 +73,7 @@ typedef	struct	 _trk_rect_t{
 	int									lost_frames;
 	WARN_ROI_STATE			warnType;
 	int									index;
-	std::vector<cv::Rect> 	targetVector;
+	cv::Rect 	targetVector[10];
 }TRK_RECT_INFO;
 
 

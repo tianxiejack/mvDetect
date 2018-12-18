@@ -661,6 +661,7 @@ void	CPostDetect::WarnTargetBGFGTrk_New()
 	m_bgfgTrack.TrackProcess(m_pPatterns,	m_patternnum);
 }
 
+#if 0
 void CPostDetect::WarnTargetValidAnalyse(std::vector<TRK_RECT_INFO> &warnTarget,vibeModel_Sequential_t *model,const uint8_t *image_data)
 {
 	bool reflag ;
@@ -705,7 +706,7 @@ void CPostDetect::WarnTargetValidAnalyse(std::vector<TRK_RECT_INFO> &warnTarget,
 		}
 	}
 }
-
+#endif
 
 void	CPostDetect::TargetBGFGAnalyse()
 {
