@@ -468,11 +468,13 @@ static void _drawWarn(cv::Mat frame, TRK_RECT_INFO *warnTarget, bool bshow)
 }
 
 
-static void _drawWarnLost(cv::Mat frame, std::vector<LOST_RECT_INFO> &lostTarget, bool bshow)
+static void _drawWarnLost(cv::Mat frame, std::vector<LOST_RECT_INFO> &lostTarget ,bool bshow)
 {
 	int	k;
-	cv::Scalar	color;
+	cv::Scalar	color, color1;
 	unsigned char fcolor = bshow?0xFF:0x00;
+	std::vector<int> idxVector;
+	idxVector.clear();
 	#if 0
 	if(bshow == false)
 	{
@@ -487,6 +489,7 @@ static void _drawWarnLost(cv::Mat frame, std::vector<LOST_RECT_INFO> &lostTarget
 	}
 	#endif
 	color	= cv::Scalar(0xA0,0xA0,0xA0, fcolor);
+	color1	= cv::Scalar(0xA0,0xA0,0xA0, 0x00);
 	for(k=0;k<lostTarget.size();k++)
 	{
 		cv::Rect result = lostTarget[k].targetRect;
@@ -495,13 +498,15 @@ static void _drawWarnLost(cv::Mat frame, std::vector<LOST_RECT_INFO> &lostTarget
 		{
 			lostTarget[k].disp_frames--;
 			//printf("%s LINE:%d      Rect :(%d,%d,%d,%d)\n",__func__,__LINE__,result.x,result.y,result.width,result.height);
-
+			if(lostTarget[k].disp_frames <= 0){
+				idxVector.push_back(k);
+				rectangle( frame, cv::Point( result.x, result.y ), cv::Point( result.x+result.width, result.y+result.height), color1, 4, 8 );
+			}
 		}
-		else
-		{
-			if(lostTarget[k].disp_frames <= 0)
-				lostTarget.erase(lostTarget.begin() + k);
-		}
+	}
+	for(k=0; k<idxVector.size(); k++){
+		int index = idxVector[k];
+		lostTarget.erase(lostTarget.begin()+index);
 	}
 }
 
@@ -515,7 +520,11 @@ void	CBGFGTracker::DrawWarnTarget(cv::Mat	frame)
 void	CBGFGTracker::DrawLostTarget(cv::Mat	frame,std::vector<LOST_RECT_INFO> &lostTarget)
 {
 	_drawWarnLost(frame, lostTargetBK, false);
+
 	_drawWarnLost(frame, lostTarget, true);
-	lostTargetBK = lostTarget ;
+	
+	lostTargetBK.assign(lostTarget.begin(),lostTarget.end());
+
+	
 
 }

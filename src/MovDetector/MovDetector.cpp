@@ -780,9 +780,10 @@ void CMoveDetector_mv::maskDetectProcess(OSA_MsgHndl *pMsg)
 			}
 #pragma omp parallel for
 			for(k=0; k<2; k++){
-				cv::dilate(srcMask[k], srcMask[k], element);
+				;//cv::dilate(srcMask[k], srcMask[k], element);
 			}
 		}
+
 #else
 		frameCount++;
 		if(frameCount > 500)

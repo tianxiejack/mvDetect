@@ -701,7 +701,7 @@ void CPostDetect::WarnTargetValidAnalyse(std::vector<TRK_RECT_INFO> &warnTarget,
 
 			LOST_RECT_INFO pTmp;
 			memcpy(&pTmp.targetRect,&warnTarget[i].targetVector[0],sizeof(cv::Rect));
-			pTmp.disp_frames = 5;
+			pTmp.disp_frames = 15;
 			debugLostTarget.push_back(pTmp);
 
 			m_bgfgTrack.ClearTrkTarget(warnTarget[i].index);
