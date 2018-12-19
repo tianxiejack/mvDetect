@@ -767,7 +767,7 @@ void CMoveDetector_mv::maskDetectProcess(OSA_MsgHndl *pMsg)
 			cvtColor(fgmask[chId], dispMat, CV_GRAY2BGR);
 			imshow("Binary", dispMat);
 			waitKey(1);
-			*/
+			 */
 
 			cv::Mat element = getStructuringElement(MORPH_ELLIPSE, Size(5,5));
 			cv::Mat srcMask[2];
@@ -780,7 +780,7 @@ void CMoveDetector_mv::maskDetectProcess(OSA_MsgHndl *pMsg)
 			}
 #pragma omp parallel for
 			for(k=0; k<2; k++){
-				;//cv::dilate(srcMask[k], srcMask[k], element);
+				cv::dilate(srcMask[k], srcMask[k], element);
 			}
 		}
 
@@ -845,7 +845,7 @@ void CMoveDetector_mv::maskDetectProcess(OSA_MsgHndl *pMsg)
 				//m_postDetect[chId].TargetBGFGAnalyse();
 				m_postDetect[chId].GetBGFGTarget(m_warnLostTarget[chId], m_warnInvadeTarget[chId], m_warnTarget[chId]);
 
-				m_postDetect[chId].WarnTargetValidAnalyse(m_warnTarget[chId],model[chId],frame[chId].data);
+				m_postDetect[chId].WarnTargetValidAnalyse(m_warnTarget[chId],model[chId],frame[chId].data,m_scaleX[chId],	m_scaleY[chId]);
 #if 0			
 			printf("!!!!!size = %d \n",m_warnTarget[chId].size());
 			for(int abc = 0;abc < m_warnTarget[chId].size();++abc)

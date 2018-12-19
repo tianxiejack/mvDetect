@@ -54,7 +54,7 @@ public:
 	void		DrawBGFGTarget(cv::Mat	frame);
 	int			GetWarnState(){return m_warnState;};
 	void 		validTarget(std::vector<TRK_RECT_INFO>	TmpMVTarget, std::vector<TRK_RECT_INFO>	&MVTarget);
-	void		WarnTargetValidAnalyse(std::vector<TRK_RECT_INFO> &warnTarget,vibeModel_Sequential_t *model,const uint8_t *image_data);
+	void		WarnTargetValidAnalyse(std::vector<TRK_RECT_INFO> &warnTarget,vibeModel_Sequential_t *model,const uint8_t *image_data,float nScalX , float nScalY );
 
 	void		DrawLOSTTarget(cv::Mat	frame);
 	

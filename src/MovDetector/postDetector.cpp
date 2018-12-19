@@ -107,7 +107,7 @@ m_patternnum ：最终得到的连通区域个数
 m_pPattern[]:每个连通区域的位置
  */
 
-#define BOL		2
+#define BOL		4
 BOOL  CPostDetect::GetMoveDetect(LPBYTE lpBitData,int lWidth, int lHeight, int iStride, int minArea,int maxArea, int iscatter/* = 20*/)
 {
 	BOOL iRet = TRUE;
@@ -662,7 +662,7 @@ void	CPostDetect::WarnTargetBGFGTrk_New()
 }
 
 #if 1
-void CPostDetect::WarnTargetValidAnalyse(std::vector<TRK_RECT_INFO> &warnTarget,vibeModel_Sequential_t *model,const uint8_t *image_data)
+void CPostDetect::WarnTargetValidAnalyse(std::vector<TRK_RECT_INFO> &warnTarget,vibeModel_Sequential_t *model,const uint8_t *image_data,float nScalX , float nScalY )
 {
 	bool reflag ;
 	int nsize = warnTarget.size();
@@ -697,6 +697,11 @@ void CPostDetect::WarnTargetValidAnalyse(std::vector<TRK_RECT_INFO> &warnTarget,
 
 		if(reflag)
 		{
+			x /= nScalX;
+			y /= nScalY;
+			w /= nScalX;
+			h /= nScalY;
+			
 			libvibeModel_Sequential_Update_8u_C3R_part(model,image_data,x,y,w,h);
 
 			LOST_RECT_INFO pTmp;
