@@ -275,14 +275,23 @@ void	CBGFGTracker::TrackProcess(Pattern  *curPatterns,	 int	numPatterns)
 					pTrkInfo	= &m_warnTarget[maxIdx];
 					pTrkInfo->targetRect	= cv::Rect(pPat->lefttop.x,	pPat->lefttop.y, pPat->rightbottom.x-pPat->lefttop.x,	pPat->rightbottom.y-pPat->lefttop.y);
 
-				#if 1
+				
 					if(pTrkInfo->trk_frames < 10)
-						memcpy(&pTrkInfo->targetVector[pTrkInfo->trk_frames],&pTrkInfo->targetRect,sizeof(cv::Rect));
+						memcpy(&pTrkInfo->targetVector[pTrkInfo->trk_frames-1],&pTrkInfo->targetRect,sizeof(cv::Rect));
 					else
 					{
 						memcpy(pTrkInfo->targetVector,&pTrkInfo->targetVector[1],9*sizeof(cv::Rect));
 						memcpy(&pTrkInfo->targetVector[9],&pTrkInfo->targetRect,sizeof(cv::Rect));
 					}
+				#if 0
+					printf("\n-------------------------------------------------------------------\n");
+					for(int tmp = 0 ;tmp < 10;tmp++)
+					{
+						printf("LINE :%d   pTrkInfo->targetVector[%d] :(%d,%d,%d,%d)\n",__LINE__,tmp,pTrkInfo->targetVector[tmp].x,
+							pTrkInfo->targetVector[tmp].y,pTrkInfo->targetVector[tmp].width,
+							pTrkInfo->targetVector[tmp].height);
+					}
+					printf("\n-------------------------------------------------------------------\n\n");
 				#endif
 				
 				}else{
@@ -292,13 +301,34 @@ void	CBGFGTracker::TrackProcess(Pattern  *curPatterns,	 int	numPatterns)
 			}
 		}else if(nsize == 1){
 			pTrkInfo	= &m_warnTarget[pPat->IdxVec[0]];
-			pTrkInfo->targetRect	= cv::Rect(pPat->lefttop.x,	pPat->lefttop.y, pPat->rightbottom.x-pPat->lefttop.x,	pPat->rightbottom.y-pPat->lefttop.y);
+			pTrkInfo->targetRect	= cv::Rect(pPat->lefttop.x,	pPat->lefttop.y, pPat->rightbottom.x-pPat->lefttop.x,	pPat->rightbottom.y-pPat->lefttop.y);		
+			
+				if(pTrkInfo->trk_frames < 10)
+					memcpy(&pTrkInfo->targetVector[pTrkInfo->trk_frames-1],&pTrkInfo->targetRect,sizeof(cv::Rect));
+				else
+				{
+					memcpy(pTrkInfo->targetVector,&pTrkInfo->targetVector[1],9*sizeof(cv::Rect));
+					memcpy(&pTrkInfo->targetVector[9],&pTrkInfo->targetRect,sizeof(cv::Rect));
+				}
+				
+			#if 0
+				printf("\n-------------------------------------------------------------------\n");
+				for(int tmp = 0 ;tmp < 10;tmp++)
+				{
+					printf("LINE :%d   pTrkInfo->targetVector[%d] :(%d,%d,%d,%d)\n",__LINE__,tmp,pTrkInfo->targetVector[tmp].x,
+						pTrkInfo->targetVector[tmp].y,pTrkInfo->targetVector[tmp].width,
+						pTrkInfo->targetVector[tmp].height);
+				}
+				printf("\n-------------------------------------------------------------------\n\n");
+			#endif
+
 		}
 	}
 }
 
 void	CBGFGTracker::ClearTrkTarget(int	Idx)
 {
+	assert(Idx<SAMPLE_NUMBER);
 	TRK_RECT_INFO	*pTrkInfo  = &m_warnTarget[Idx];
 	pTrkInfo->trkState	= TRK_STATE_IDLE;
 	pTrkInfo->warnType	= WARN_STATE_IDLE;
@@ -306,7 +336,7 @@ void	CBGFGTracker::ClearTrkTarget(int	Idx)
 	pTrkInfo->disp_frames	= 0;
 	pTrkInfo->lost_frames = 0;
 	
-	memcpy(pTrkInfo->targetVector,0,10*sizeof(cv::Rect));
+	memset(pTrkInfo->targetVector,0,10*sizeof(cv::Rect));
 }
 
 int	CBGFGTracker::TrackAnalyse(std::vector<cv::Point2i>		warnRoi)
@@ -443,9 +473,20 @@ static void _drawWarnLost(cv::Mat frame, std::vector<LOST_RECT_INFO> &lostTarget
 	int	k;
 	cv::Scalar	color;
 	unsigned char fcolor = bshow?0xFF:0x00;
-
+	#if 0
+	if(bshow == false)
+	{
+		printf("\n*****************size = %d************************\n",lostTarget.size());
+		std::vector<LOST_RECT_INFO>::iterator itr;
+		for(itr = lostTarget.begin();itr!=lostTarget.end();++itr)
+		{
+			printf("lostTarget vector   Rect:(%d,%d,%d,%d) \n",(*itr).targetRect.x,(*itr).targetRect.y,
+				(*itr).targetRect.width,(*itr).targetRect.height);
+		}
+		printf("\n**********************************************************\n");
+	}
+	#endif
 	color	= cv::Scalar(0xA0,0xA0,0xA0, fcolor);
-
 	for(k=0;k<lostTarget.size();k++)
 	{
 		cv::Rect result = lostTarget[k].targetRect;
@@ -453,10 +494,12 @@ static void _drawWarnLost(cv::Mat frame, std::vector<LOST_RECT_INFO> &lostTarget
 		if(bshow == true)
 		{
 			lostTarget[k].disp_frames--;
+			//printf("%s LINE:%d      Rect :(%d,%d,%d,%d)\n",__func__,__LINE__,result.x,result.y,result.width,result.height);
+
 		}
 		else
 		{
-			if(lostTarget[k].disp_frames == 0)
+			if(lostTarget[k].disp_frames <= 0)
 				lostTarget.erase(lostTarget.begin() + k);
 		}
 	}

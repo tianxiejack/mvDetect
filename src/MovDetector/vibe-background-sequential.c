@@ -979,15 +979,15 @@ int32_t libvibeModel_Sequential_Update_8u_C3R_part(
 	int y = targetRecty;
 	int w= targetRectWidth;
 	int h = targetRectHeight;
-	for(int i = y; i < y+height ;i++)
+	for(int i = y; i < y + h ;i++)
 	{
-		memcpy(historyImage+x + i*width,image_data + x + i*width , w);
-		memcpy(historyImage + width*height +x + i*width,image_data + x + i*width , w);
+		memcpy(historyImage+x + i*width,image_data + x + i*width , w*sizeof(uint8_t));
+		memcpy(historyImage + width*height +x + i*width,image_data + x + i*width , w*sizeof(uint8_t));
 	}
 
 	for(int j = 0 ; j <numberOfTests;j++)
-		for(int i = y; i < y+height ;i++)
-			memcpy(historyImage + j*width*height +x + i*width,image_data + x + i*width , w);
+		for(int i = y; i < y + h ;i++)
+			memcpy(historyBuffer + j*width*height +x + i*width,image_data + x + i*width , w*sizeof(uint8_t));
 
 }
 

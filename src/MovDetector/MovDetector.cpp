@@ -845,7 +845,25 @@ void CMoveDetector_mv::maskDetectProcess(OSA_MsgHndl *pMsg)
 				m_postDetect[chId].GetBGFGTarget(m_warnLostTarget[chId], m_warnInvadeTarget[chId], m_warnTarget[chId]);
 
 				m_postDetect[chId].WarnTargetValidAnalyse(m_warnTarget[chId],model[chId],frame[chId].data);
+#if 0			
+			printf("!!!!!size = %d \n",m_warnTarget[chId].size());
+			for(int abc = 0;abc < m_warnTarget[chId].size();++abc)
+			{
+				for(int haha = 0; haha < 10 ; haha++)
+				{
+					int x = m_warnTarget[chId][abc].targetVector[haha].x;
+					int y = m_warnTarget[chId][abc].targetVector[haha].y;
+					int w = m_warnTarget[chId][abc].targetVector[haha].width;
+					int h = m_warnTarget[chId][abc].targetVector[haha].height;
 				
+					printf("1111111111111111111111	 %s   x,y,w,h = (%d,%d,%d,%d)\n",
+						__func__,x,y,w,h);
+				}		
+			}
+
+			printf("\n\n\n\n\n\n");
+#endif
+			
 				if(m_bSelfDraw[chId] && !disframe[chId].empty())
 				{
 					int	npoint	= m_warnRoiVec[chId].size();
@@ -868,7 +886,7 @@ void CMoveDetector_mv::maskDetectProcess(OSA_MsgHndl *pMsg)
 						line(disframe[chId], m_warnRoiVec[chId][i], m_warnRoiVec[chId][(i+1)%npoint], cvScalar(0,0,255,255), 4, 8);
 					}
 					m_MSTrkObj[chId].DrawTrkTarget(disframe[chId], disframe[chId], false);
-					m_MSTrkObj[chId].DrawTrkTarget(disframe[chId], disframe[chId], true);
+					//m_MSTrkObj[chId].DrawTrkTarget(disframe[chId], disframe[chId], true);
 				}
 			}
 			

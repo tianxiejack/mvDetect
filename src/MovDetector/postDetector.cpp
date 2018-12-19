@@ -670,26 +670,32 @@ void CPostDetect::WarnTargetValidAnalyse(std::vector<TRK_RECT_INFO> &warnTarget,
 	for(int i = 0; i < nsize ; i++ )
 	{
 		reflag = false;
+		assert(warnTarget[i].trkState == TRK_STATE_TRACK);
 
 		int x =  warnTarget[i].targetVector[0].x;
 		int y =  warnTarget[i].targetVector[0].y;
 		int w =  warnTarget[i].targetVector[0].width;
 		int h =  warnTarget[i].targetVector[0].height;
+
+		//printf("%s  line: %d     x,y,w,h = (%d,%d,%d,%d)\n",__func__,__LINE__,x,y,w,h);
 		
 		if(warnTarget[i].trk_frames > 9)
 		for( int j = 1 ; j < 10 ;  ++j )
 		{
 			if( (x == warnTarget[i].targetVector[j].x) && (y == warnTarget[i].targetVector[j].y)
 				&& ( w == warnTarget[i].targetVector[j].width ) && ( h == warnTarget[i].targetVector[j].height) )
-				continue;
-			else
 			{
 				reflag = true;
+				continue;
+			}
+			else
+			{
+				reflag = false;
 				break;
 			}
 		}
 
-		if(!reflag)
+		if(reflag)
 		{
 			libvibeModel_Sequential_Update_8u_C3R_part(model,image_data,x,y,w,h);
 
@@ -699,7 +705,7 @@ void CPostDetect::WarnTargetValidAnalyse(std::vector<TRK_RECT_INFO> &warnTarget,
 			debugLostTarget.push_back(pTmp);
 
 			m_bgfgTrack.ClearTrkTarget(warnTarget[i].index);
-			warnTarget.erase(warnTarget.begin() + i);
+			//warnTarget.erase(warnTarget.begin() + i);
 		}
 	}
 }
