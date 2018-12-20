@@ -170,21 +170,29 @@ inline void mergeOverLap(cv::Rect rec1,cv::Rect rec2,cv::Rect &outRec)
 	cv::Rect tmp;
 	if(rec1.x < rec2.x){
 		tmp.x = rec1.x;
-		tmp.width = rec2.width + rec2.x - rec1.x;
 	}else{
 		tmp.x = rec2.x;
-		tmp.width = rec1.width + rec1.x - rec2.x;
+	}
+	if(rec1.x+rec1.width<rec2.x+rec2.width){
+		tmp.width = rec2.x+rec2.width - tmp.x;
+	}else{
+		tmp.width = rec1.x+rec1.width - tmp.x;
 	}
 	
 	if(rec1.y < rec2.y){
 		tmp.y = rec1.y;
-		tmp.height = rec2.height + rec2.y - rec1.y;
 	}else{
 		tmp.y = rec2.y;
-		tmp.height = rec1.height + rec1.y - rec2.y;
+	}
+	if(rec1.y+rec1.height<rec2.y+rec2.height){
+		tmp.height = rec2.y+rec2.height - tmp.y;
+	}else{
+		tmp.height = rec1.y+rec1.height - tmp.y;
 	}
 	outRec = tmp;
+
 }
+
 
 
 void CPostDetect::MergeRect(Pattern	ptn[], int num)
