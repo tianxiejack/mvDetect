@@ -739,7 +739,7 @@ void CMoveDetector_mv::maskDetectProcess(OSA_MsgHndl *pMsg)
 	static int  frameCount = 0;
 	if(!frameIn[chId].empty())
 	{
-		//Uint32 t1 = OSA_getCurTimeInMsec() ;
+		int64 t1 = getTickCount();//OSA_getCurTimeInMsec() ;
 
 		frameIn[chId].copyTo(frame[chId]);
 #if 1
@@ -792,7 +792,7 @@ void CMoveDetector_mv::maskDetectProcess(OSA_MsgHndl *pMsg)
 		assert(fgmask[chId].channels() == 1);
 #endif
 		
-		//OSA_printf("%s:delt_t1=%d\n",__func__, OSA_getCurTimeInMsec() - t1);
+		OSA_printf("%s:delt_t1=%d\n",__func__, ((getTickCount()-t1)/getTickFrequency()));
 		
 		cv::Mat BGMask[2];
 		CPostDetect* pMVObj[2];
@@ -808,7 +808,7 @@ void CMoveDetector_mv::maskDetectProcess(OSA_MsgHndl *pMsg)
 			pMVObj[k]->MovTargetDetect(m_scaleX[chId],	m_scaleY[chId]);
 		}
 		{
-			//OSA_printf("%s:delt_t2=%d\n",__func__, OSA_getCurTimeInMsec() - t1);
+			OSA_printf("%s:delt_t2=%d\n",__func__, ((getTickCount()-t1)/getTickFrequency()));
 			int nsize1= m_postDetect[chId].m_movTargetRec.size();
 			int nsize2= m_postDetect2[chId].m_movTargetRec.size();
 
@@ -845,7 +845,7 @@ void CMoveDetector_mv::maskDetectProcess(OSA_MsgHndl *pMsg)
 				//m_postDetect[chId].TargetBGFGAnalyse();
 				m_postDetect[chId].GetBGFGTarget(m_warnLostTarget[chId], m_warnInvadeTarget[chId], m_warnTarget[chId]);
 
-				m_postDetect[chId].WarnTargetValidAnalyse(m_warnTarget[chId],model[chId],frame[chId].data,m_scaleX[chId],	m_scaleY[chId]);
+			    m_postDetect[chId].WarnTargetValidAnalyse(m_warnTarget[chId],model[chId],frame[chId].data,m_scaleX[chId],	m_scaleY[chId]);
 #if 0			
 			printf("!!!!!size = %d \n",m_warnTarget[chId].size());
 			for(int abc = 0;abc < m_warnTarget[chId].size();++abc)
@@ -895,7 +895,7 @@ void CMoveDetector_mv::maskDetectProcess(OSA_MsgHndl *pMsg)
 			{
 				(*m_notifyFunc)(m_context, chId);
 			}
-			//OSA_printf("%s:delt_t2=%d\n",__func__, OSA_getCurTimeInMsec() - t1);
+			OSA_printf("%s:delt_t3=%d\n",__func__, ((getTickCount()-t1)/getTickFrequency()));
 		}
 	}
 
