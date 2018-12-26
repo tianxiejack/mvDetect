@@ -76,6 +76,7 @@ typedef	struct	 _trk_rect_t{
 	cv::Rect 							targetVector[10];
 	float								mean;
 	float								var;
+	cv::Point2f						lostVel;
 }TRK_RECT_INFO;
 
 

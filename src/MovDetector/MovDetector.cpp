@@ -878,13 +878,13 @@ void CMoveDetector_mv::maskDetectProcess(int chId)
 			{
 				m_postDetect[chId].warnTargetSelect_New(tmpMVTarget);
 				m_postDetect[chId].SetTargetBGFGTrk();
-				m_postDetect[chId].WarnTargetBGFGTrk_New();
+				m_postDetect[chId].WarnTargetBGFGTrk_New(bakOrigframe[chId].size());
 				//m_postDetect[chId].TargetBGFGAnalyse();
 				m_postDetect[chId].GetBGFGTarget(m_warnLostTarget[chId], m_warnInvadeTarget[chId], m_warnTarget[chId]);
 
-				m_postDetect[chId].GetMeanVar(frame[chId], m_warnTarget[chId], m_scaleX[chId],	m_scaleY[chId]);
+				m_postDetect[chId].GetMeanVar(frame[chId], m_warnTarget[chId], m_scaleX[chId],	m_scaleY[chId], cv::Size(m_offsetPt[chId].x,m_offsetPt[chId].y));
 
-			    m_postDetect[chId].WarnTargetValidAnalyse(m_warnTarget[chId],model[chId],frame[chId].data,m_scaleX[chId],	m_scaleY[chId]);
+			    m_postDetect[chId].WarnTargetValidAnalyse(m_warnTarget[chId],model[chId],frame[chId].data,m_scaleX[chId],m_scaleY[chId], cv::Size(m_offsetPt[chId].x,m_offsetPt[chId].y));
 #if 0			
 			printf("!!!!!size = %d \n",m_warnTarget[chId].size());
 			for(int abc = 0;abc < m_warnTarget[chId].size();++abc)

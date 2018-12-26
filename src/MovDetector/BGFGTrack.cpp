@@ -184,11 +184,12 @@ static	void	_trackprocess(Pattern  *curPatterns,	 int	numPatterns,	TRK_RECT_INFO
 	}
 }
 #else
-static	void	_trackprocess(Pattern  *curPatterns,	 int	numPatterns,	int Idx, TRK_RECT_INFO	*pTrkInfo, float trkThred)
+static	void	_trackprocess(const cv::Size sz, Pattern  *curPatterns,	 int	numPatterns,	int Idx, TRK_RECT_INFO	*pTrkInfo, float trkThred)
 {
-	int	k;
+	int	k,idx, idx0;
 	cv::Rect	tgtRect,	trkRect;
 	Pattern	*pPat, *pBakPat;
+	cv::Point2f centpt0, centpt1;
 	float	foverlap,	maxoverlap = 0.0;
 	trkRect= pTrkInfo->targetRect;
 
@@ -218,6 +219,29 @@ static	void	_trackprocess(Pattern  *curPatterns,	 int	numPatterns,	int Idx, TRK_
 	}
 	else//没有跟踪到目标
 	{
+		/*
+		if(pTrkInfo->lost_frames == 0){
+
+			idx = (pTrkInfo->trk_frames>10)?9:(pTrkInfo->trk_frames-1);
+			idx0 = (idx>0)?(idx-1):0;
+			centpt0.x = pTrkInfo->targetVector[idx0].x +pTrkInfo->targetVector[idx0].width/2;
+			centpt0.y = pTrkInfo->targetVector[idx0].y +pTrkInfo->targetVector[idx0].height/2;
+			centpt1.x = pTrkInfo->targetVector[idx].x +pTrkInfo->targetVector[idx].width/2;
+			centpt1.y = pTrkInfo->targetVector[idx].y +pTrkInfo->targetVector[idx].height/2;
+
+			pTrkInfo->lostVel.x = (centpt1.x-centpt0.x);///(idx+1);
+			pTrkInfo->lostVel.y = (centpt1.y-centpt0.y);///(idx+1);
+		}
+		pTrkInfo->targetRect.x += pTrkInfo->lostVel.x;
+		pTrkInfo->targetRect.y += pTrkInfo->lostVel.y;
+
+		if(pTrkInfo->targetRect.x<0) pTrkInfo->targetRect.x=0;
+		if(pTrkInfo->targetRect.y<0) pTrkInfo->targetRect.y=0;
+		if(pTrkInfo->targetRect.x+pTrkInfo->targetRect.width>sz.width)
+			pTrkInfo->targetRect.x = sz.width - pTrkInfo->targetRect.width;
+		if(pTrkInfo->targetRect.y+pTrkInfo->targetRect.height>sz.height)
+			pTrkInfo->targetRect.y = sz.height - pTrkInfo->targetRect.height;
+		 */
 		pTrkInfo->trk_frames++;//等待处理
 		pTrkInfo->lost_frames++;
 		if(pTrkInfo->lost_frames > 16){//连续丢失20帧以上，进入闲置状态
@@ -227,7 +251,7 @@ static	void	_trackprocess(Pattern  *curPatterns,	 int	numPatterns,	int Idx, TRK_
 }
 #endif
 
-void	CBGFGTracker::TrackProcess(Pattern  *curPatterns,	 int	numPatterns)
+void	CBGFGTracker::TrackProcess(const cv::Size sz, Pattern  *curPatterns,	 int	numPatterns)
 {
 	int	i,	k;
 	TRK_RECT_INFO	*pTrkInfo;
@@ -245,12 +269,13 @@ void	CBGFGTracker::TrackProcess(Pattern  *curPatterns,	 int	numPatterns)
 		{
 			pTrkInfo->trkState	= TRK_STATE_TRACK;
 			pTrkInfo->disp_frames	= 0;
-			pTrkInfo->trk_frames = 0;
+			pTrkInfo->trk_frames = 1;
 			pTrkInfo->lost_frames = 0;
+			memcpy(&pTrkInfo->targetVector[pTrkInfo->trk_frames-1],&pTrkInfo->targetRect,sizeof(cv::Rect));
 		}
 		else	if (pTrkInfo->trkState	==TRK_STATE_TRACK)
 		{
-			_trackprocess(curPatterns,	numPatterns,	i, pTrkInfo, m_thredParam.trkThred);
+			_trackprocess(sz, curPatterns,	numPatterns,	i, pTrkInfo, m_thredParam.trkThred);
 		}
 		else if(pTrkInfo->trkState	==TRK_STATE_IDLE)
 		{
@@ -465,7 +490,7 @@ static void _drawWarn(cv::Mat frame, TRK_RECT_INFO *warnTarget, bool bshow)
 			char strDisplay[128];
 			rectangle( frame, cv::Point( result.x, result.y ), cv::Point( result.x+result.width, result.y+result.height), color, 4, 8 );
 			sprintf(strDisplay, "%d ", k) ;
-			putText(frame, strDisplay,cv::Point( result.x+4, result.y+4 ),1,2,cv::Scalar(25,200,25,fcolor));
+			putText(frame, strDisplay,cv::Point( result.x+4, result.y+4 ),1,2,cv::Scalar(25,200,25,fcolor),2);
 		}
 	}
 }

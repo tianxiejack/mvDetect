@@ -650,12 +650,12 @@ void	CPostDetect::SetTargetBGFGTrk()
 	m_bgfgTrack.SetTrkTarget(m_warnTargetRec);
 }
 
-void	CPostDetect::WarnTargetBGFGTrk()
+void	CPostDetect::WarnTargetBGFGTrk(const cv::Size sz)
 {
-	m_bgfgTrack.TrackProcess(m_pPatterns,	m_patternnum);
+	m_bgfgTrack.TrackProcess(sz, m_pPatterns,	m_patternnum);
 }
 
-void	CPostDetect::WarnTargetBGFGTrk_New()
+void	CPostDetect::WarnTargetBGFGTrk_New(const cv::Size sz)
 {
 	int i, nsize = m_warnTargetRec.size();
 	m_patternnum = nsize;
@@ -666,11 +666,12 @@ void	CPostDetect::WarnTargetBGFGTrk_New()
 		m_pPatterns[i].rightbottom.x= targetRec.x+targetRec.width;
 		m_pPatterns[i].rightbottom.y= targetRec.y+targetRec.height;
 	}
-	m_bgfgTrack.TrackProcess(m_pPatterns,	m_patternnum);
+	m_bgfgTrack.TrackProcess(sz, m_pPatterns,	m_patternnum);
 }
 
 #if 1
-void CPostDetect::WarnTargetValidAnalyse(std::vector<TRK_RECT_INFO> &warnTarget,vibeModel_Sequential_t *model,const uint8_t *image_data,float nScalX , float nScalY )
+void CPostDetect::WarnTargetValidAnalyse(std::vector<TRK_RECT_INFO> &warnTarget,vibeModel_Sequential_t *model,const uint8_t *image_data,\
+		float nScalX , float nScalY , cv::Size offsize)
 {
 	bool reflag ;
 	int nsize = warnTarget.size();
@@ -705,8 +706,8 @@ void CPostDetect::WarnTargetValidAnalyse(std::vector<TRK_RECT_INFO> &warnTarget,
 
 		if(reflag)
 		{
-			x /= nScalX;
-			y /= nScalY;
+			x = (x-offsize.width)/nScalX;
+			y = (y-offsize.height)/nScalY;
 			w /= nScalX;
 			h /= nScalY;
 			
@@ -729,7 +730,7 @@ void	CPostDetect::TargetBGFGAnalyse()
 	m_warnState	=	m_bgfgTrack.TrackAnalyse(m_warnRoi);
 }
 
-void CPostDetect::GetMeanVar(const cv::Mat frame, std::vector<TRK_RECT_INFO> &warnTarget, float nScalX , float nScalY)
+void CPostDetect::GetMeanVar(const cv::Mat frame, std::vector<TRK_RECT_INFO> &warnTarget, float nScalX , float nScalY, cv::Size offsize)
 {
 	int k, nsize = warnTarget.size();
 	TRK_RECT_INFO	*pTrkInfo;
@@ -738,7 +739,8 @@ void CPostDetect::GetMeanVar(const cv::Mat frame, std::vector<TRK_RECT_INFO> &wa
 	for(k=0; k<nsize; k++){
 		pTrkInfo = &warnTarget[k];
 		rec = pTrkInfo->targetRect;
-		rec.x /=nScalX;	rec.y /=nScalY;
+		rec.x =(rec.x-offsize.width)/nScalX;
+		rec.y =(rec.y-offsize.height)/nScalY;
 		rec.width /=nScalX;	rec.height /=nScalY;
 		meanStdDev(frame(rec), mean, var);
 		pTrkInfo->mean = mean.val[0];

@@ -47,17 +47,18 @@ public:
 	void		DrawWarnTarget(cv::Mat	frame,	std::vector<TRK_RECT_INFO>	warnTarget);
 
 	void		SetTargetBGFGTrk();
-	void		WarnTargetBGFGTrk();
-	void		WarnTargetBGFGTrk_New();
+	void		WarnTargetBGFGTrk(const cv::Size sz);
+	void		WarnTargetBGFGTrk_New(const cv::Size sz);
 	void		TargetBGFGAnalyse();
 	void		GetBGFGTarget(std::vector<TRK_RECT_INFO> &lostTarget, std::vector<TRK_RECT_INFO> &invadeTarget, std::vector<TRK_RECT_INFO> &warnTarget);
 	void		DrawBGFGTarget(cv::Mat	frame);
 	int			GetWarnState(){return m_warnState;};
 	void 		validTarget(std::vector<TRK_RECT_INFO>	TmpMVTarget, std::vector<TRK_RECT_INFO>	&MVTarget);
-	void		WarnTargetValidAnalyse(std::vector<TRK_RECT_INFO> &warnTarget,vibeModel_Sequential_t *model,const uint8_t *image_data,float nScalX , float nScalY );
+	void		WarnTargetValidAnalyse(std::vector<TRK_RECT_INFO> &warnTarget,vibeModel_Sequential_t *model,const uint8_t *image_data,	\
+			float nScalX , float nScalY, cv::Size offsize );
 
 	void		DrawLOSTTarget(cv::Mat	frame);
-	void 		GetMeanVar(const cv::Mat frame, std::vector<TRK_RECT_INFO> &warnTarget, float nScalX , float nScalY);
+	void 		GetMeanVar(const cv::Mat frame, std::vector<TRK_RECT_INFO> &warnTarget, float nScalX , float nScalY, cv::Size offsize);
 	
 public:
 	Pattern  *m_pPatterns;
