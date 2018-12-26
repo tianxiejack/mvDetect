@@ -729,6 +729,23 @@ void	CPostDetect::TargetBGFGAnalyse()
 	m_warnState	=	m_bgfgTrack.TrackAnalyse(m_warnRoi);
 }
 
+void CPostDetect::GetMeanVar(const cv::Mat frame, std::vector<TRK_RECT_INFO> &warnTarget, float nScalX , float nScalY)
+{
+	int k, nsize = warnTarget.size();
+	TRK_RECT_INFO	*pTrkInfo;
+	cv::Rect rec;
+	cv::Scalar mean,var;
+	for(k=0; k<nsize; k++){
+		pTrkInfo = &warnTarget[k];
+		rec = pTrkInfo->targetRect;
+		rec.x /=nScalX;	rec.y /=nScalY;
+		rec.width /=nScalX;	rec.height /=nScalY;
+		meanStdDev(frame(rec), mean, var);
+		pTrkInfo->mean = mean.val[0];
+		pTrkInfo->var = var.val[0];
+	}
+}
+
 void	CPostDetect::GetBGFGTarget(std::vector<TRK_RECT_INFO> &lostTarget, std::vector<TRK_RECT_INFO> &invadeTarget, std::vector<TRK_RECT_INFO> &warnTarget)
 {
 	m_bgfgTrack.GetTrackTarget(lostTarget, invadeTarget, warnTarget);

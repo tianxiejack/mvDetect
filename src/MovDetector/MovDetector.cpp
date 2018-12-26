@@ -108,10 +108,42 @@ int CMoveDetector_mv::init(LPNOTIFYFUNC	notifyFunc, void *context)
 	m_context = context;
 	for(i=0; i<DETECTOR_NUM; i++)
 	{
-		result |= OSA_tskCreate(&m_maskDetectTsk[i], videoProcess_TskFncMaskDetect, 0, 0, 0, this);
+//		result |= OSA_tskCreate(&m_maskDetectTsk[i], videoProcess_TskFncMaskDetect, 0, 0, 0, this);
+		result |= Detect_threadCreate(i);
 	   OSA_printf("%s:chId=%d \n",__func__, i);
 	}
 	return	result;
+}
+
+int CMoveDetector_mv::Detect_threadCreate(int detectId)
+{
+	int iRet = OSA_SOK;
+	iRet = OSA_semCreate(&m_detectThrObj[detectId].procNotifySem ,1,0) ;
+	OSA_assert(iRet == OSA_SOK);
+
+	m_detectThrObj[detectId].exitProcThread = false;
+
+	m_detectThrObj[detectId].pParent = (void*)this;
+
+	m_detectThrObj[detectId].detectId = detectId;
+
+	iRet = OSA_thrCreate(&m_detectThrObj[detectId].thrHandleProc, detectThreadFunc, 0, 0, &m_detectThrObj[detectId]);
+
+	return iRet;
+}
+
+int CMoveDetector_mv::Detect_threadDestroy(int detectId)
+{
+	int iRet = OSA_SOK;
+
+	m_detectThrObj[detectId].exitProcThread = true;
+	OSA_semSignal(&m_detectThrObj[detectId].procNotifySem);
+
+	iRet = OSA_thrDelete(&m_detectThrObj[detectId].thrHandleProc);
+
+	OSA_semDelete(&m_detectThrObj[detectId].procNotifySem);
+
+	return iRet;
 }
 
 int CMoveDetector_mv::destroy()
@@ -119,7 +151,8 @@ int CMoveDetector_mv::destroy()
 	int	i,	rtn = OSA_SOK;
 	m_bExit = TRUE;
 	for(i=0; i<DETECTOR_NUM; i++){
-		rtn |= OSA_tskDelete(&m_maskDetectTsk[i]);
+//		rtn |= OSA_tskDelete(&m_maskDetectTsk[i]);
+		rtn |= Detect_threadDestroy(i);
 	}
 
 	for(i=0; i<DETECTOR_NUM; i++)
@@ -385,10 +418,11 @@ void CMoveDetector_mv::setFrame(cv::Mat	src ,int chId,int accuracy/*2*/,int inpu
 		threshold[chId] = inputThreshold;		
 		m_postDetect[chId].InitializedMD(gray.cols, (gray.rows>>1)+16, gray.cols);
 		m_postDetect2[chId].InitializedMD(gray.cols,(gray.rows>>1)+16, gray.cols);
-		if(!m_busy[chId])
-		{	
-			OSA_tskSendMsg(&m_maskDetectTsk[chId], NULL, (Uint16)chId, NULL, 0);	
-		}
+//		if(!m_busy[chId])
+//		{
+//			OSA_tskSendMsg(&m_maskDetectTsk[chId], NULL, (Uint16)chId, NULL, 0);
+//		}
+		OSA_semSignal(&m_detectThrObj[chId].procNotifySem);
 		//printf("delta t4 = %d \n",OSA_getCurTimeInMsec() - t1);
 	}
 }
@@ -695,11 +729,12 @@ bool CMoveDetector_mv::getFrameMV(cv::Mat preFrame, cv::Mat curFrame, cv::Point2
 	 }
 	 return false;
 }
+#define PRINTFABLE 0
 
-void CMoveDetector_mv::maskDetectProcess(OSA_MsgHndl *pMsg)
+void CMoveDetector_mv::maskDetectProcess(int chId)
 {	
-	int chId, k;
-	chId = pMsg->cmd ;
+	int  k;
+
 	frameIndex[chId]++;
 	
 	if( isWait(chId) )
@@ -791,9 +826,9 @@ void CMoveDetector_mv::maskDetectProcess(OSA_MsgHndl *pMsg)
 		(*fgbg[chId])(frame[chId], fgmask[chId], update_bg_model ? -1 : 0);
 		assert(fgmask[chId].channels() == 1);
 #endif
-		
-		OSA_printf("%s:delt_t1=%d\n",__func__, ((getTickCount()-t1)/getTickFrequency()));
-		
+#if PRINTFABLE
+		OSA_printf("%s:delt_t1=%f sec\n",__func__, ((getTickCount()-t1)/getTickFrequency()));
+#endif
 		cv::Mat BGMask[2];
 		CPostDetect* pMVObj[2];
 		for(k=0; k<2; k++){
@@ -808,7 +843,9 @@ void CMoveDetector_mv::maskDetectProcess(OSA_MsgHndl *pMsg)
 			pMVObj[k]->MovTargetDetect(m_scaleX[chId],	m_scaleY[chId]);
 		}
 		{
-			OSA_printf("%s:delt_t2=%d\n",__func__, ((getTickCount()-t1)/getTickFrequency()));
+#if PRINTFABLE
+			OSA_printf("%s:delt_t2=%f sec\n",__func__, ((getTickCount()-t1)/getTickFrequency()));
+#endif
 			int nsize1= m_postDetect[chId].m_movTargetRec.size();
 			int nsize2= m_postDetect2[chId].m_movTargetRec.size();
 
@@ -844,6 +881,8 @@ void CMoveDetector_mv::maskDetectProcess(OSA_MsgHndl *pMsg)
 				m_postDetect[chId].WarnTargetBGFGTrk_New();
 				//m_postDetect[chId].TargetBGFGAnalyse();
 				m_postDetect[chId].GetBGFGTarget(m_warnLostTarget[chId], m_warnInvadeTarget[chId], m_warnTarget[chId]);
+
+				m_postDetect[chId].GetMeanVar(frame[chId], m_warnTarget[chId], m_scaleX[chId],	m_scaleY[chId]);
 
 			    m_postDetect[chId].WarnTargetValidAnalyse(m_warnTarget[chId],model[chId],frame[chId].data,m_scaleX[chId],	m_scaleY[chId]);
 #if 0			
@@ -895,7 +934,9 @@ void CMoveDetector_mv::maskDetectProcess(OSA_MsgHndl *pMsg)
 			{
 				(*m_notifyFunc)(m_context, chId);
 			}
-			OSA_printf("%s:delt_t3=%d\n",__func__, ((getTickCount()-t1)/getTickFrequency()));
+#if PRINTFABLE
+			OSA_printf("%s:delt_t3=%f sec\n",__func__, ((getTickCount()-t1)/getTickFrequency()));
+#endif
 		}
 	}
 
@@ -921,6 +962,21 @@ void CMoveDetector_mv::maskDetectProcess(OSA_MsgHndl *pMsg)
 		doneFlag[chId] = true;	
 	}
 	m_busy[chId] = false;
+}
+
+void CMoveDetector_mv::mainProcTsk(DETECT_ProcThrObj *muv)
+{
+	OSA_printf("%s: Detect Proc Tsk[%d] Is Entering...\n",__func__, muv->detectId);
+	CMoveDetector_mv *pUse = (CMoveDetector_mv *)muv->pParent;
+	while(muv->exitProcThread ==  false)
+	{
+
+		OSA_semWait(&muv->procNotifySem, OSA_TIMEOUT_FOREVER);
+
+		maskDetectProcess(muv->detectId);
+
+	}
+	OSA_printf("%s: Detect Proc Tsk[%d] Is Exit...\n",__func__, muv->detectId);
 }
 
 }

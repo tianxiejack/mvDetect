@@ -6,7 +6,7 @@
 
 #define		TRK_TG_NUM		10
 #define  		SAMPLE_NUMBER 	256
-#define		DETECTOR_NUM		10
+#define		DETECTOR_NUM		4
 
 #define ASSERT			CV_Assert
 #define TRACE			printf
@@ -66,14 +66,16 @@ typedef struct _pattern_t
 typedef	struct	 _trk_rect_t{
 	cv::Rect							targetRect;
 	TRK_STATE						trkState;
-	TARGET_TYPE				targetType;
+	TARGET_TYPE					targetType;
 	double							distance;
 	int									disp_frames;
 	int									trk_frames;
 	int									lost_frames;
 	WARN_ROI_STATE			warnType;
 	int									index;
-	cv::Rect 	targetVector[10];
+	cv::Rect 							targetVector[10];
+	float								mean;
+	float								var;
 }TRK_RECT_INFO;
 
 

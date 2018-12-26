@@ -220,7 +220,7 @@ static	void	_trackprocess(Pattern  *curPatterns,	 int	numPatterns,	int Idx, TRK_
 	{
 		pTrkInfo->trk_frames++;//等待处理
 		pTrkInfo->lost_frames++;
-		if(pTrkInfo->lost_frames > 8){//连续丢失20帧以上，进入闲置状态
+		if(pTrkInfo->lost_frames > 16){//连续丢失20帧以上，进入闲置状态
 			pTrkInfo->trkState	= TRK_STATE_IDLE;
 		}
 	}
@@ -412,6 +412,8 @@ int	CBGFGTracker::TrackAnalyse(std::vector<cv::Point2i>		warnRoi)
 	return warnState;
 }
 
+
+
 void	CBGFGTracker::GetTrackTarget(std::vector<TRK_RECT_INFO> &lostTarget, std::vector<TRK_RECT_INFO> &invadeTarget, std::vector<TRK_RECT_INFO> &warnTarget)
 {
 	lostTarget.clear();
@@ -435,6 +437,7 @@ void	CBGFGTracker::GetTrackTarget(std::vector<TRK_RECT_INFO> &lostTarget, std::v
 			{
 				invadeTarget.push_back(*pTrkInfo);
 			}
+
 			warnTarget.push_back(*pTrkInfo);
 		}
 	}

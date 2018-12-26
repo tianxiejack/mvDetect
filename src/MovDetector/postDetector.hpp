@@ -57,6 +57,7 @@ public:
 	void		WarnTargetValidAnalyse(std::vector<TRK_RECT_INFO> &warnTarget,vibeModel_Sequential_t *model,const uint8_t *image_data,float nScalX , float nScalY );
 
 	void		DrawLOSTTarget(cv::Mat	frame);
+	void 		GetMeanVar(const cv::Mat frame, std::vector<TRK_RECT_INFO> &warnTarget, float nScalX , float nScalY);
 	
 public:
 	Pattern  *m_pPatterns;

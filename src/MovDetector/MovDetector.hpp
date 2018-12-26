@@ -45,6 +45,14 @@ typedef struct _mog2_para_t{
 }MOG2_PARAM;
 
 
+typedef struct _detect_thr_obj{
+	OSA_ThrHndl		thrHandleProc;
+	OSA_SemHndl	procNotifySem;
+	volatile bool	exitProcThread;
+	void 					*pParent;
+	int						detectId;
+}DETECT_ProcThrObj;
+
 class CMoveDetector_mv	:	public CMvDectInterface
 {
 public:
@@ -129,12 +137,23 @@ protected:
 	unsigned int m_DetectCount;
 	static int videoProcess_TskFncMaskDetect(OSA_TskHndl *pTsk, OSA_MsgHndl *pMsg, Uint32 curState )
 	{
-		((CMoveDetector_mv*)pTsk->appData)->maskDetectProcess(pMsg);
+//		((CMoveDetector_mv*)pTsk->appData)->maskDetectProcess(pMsg);
 		return 0;
 	}
-	void maskDetectProcess(OSA_MsgHndl *pMsg);
+	void maskDetectProcess(int chId);
 
 private:
+	DETECT_ProcThrObj	m_detectThrObj[DETECTOR_NUM];
+	int Detect_threadCreate(int detectId);
+	int Detect_threadDestroy(int detectId);
+	void mainProcTsk(DETECT_ProcThrObj *muv);
+	static void *detectThreadFunc(void *context)
+	{
+		DETECT_ProcThrObj *muv = (DETECT_ProcThrObj *)context;
+		CMoveDetector_mv *pUse = (CMoveDetector_mv *)muv->pParent;
+		pUse->mainProcTsk(muv);
+		return NULL;
+	}
 
 #ifdef		BGFG_CR
 		BackgroundSubtractorMOG3* fgbg[DETECTOR_NUM];
