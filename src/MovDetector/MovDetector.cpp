@@ -598,8 +598,6 @@ void CMoveDetector_mv::mvClose(int chId)
 	if( isRun(chId) )
 	{
 		statusFlag[chId] = false;
-		if(!m_busy[chId])
-			OSA_tskSendMsg(&m_maskDetectTsk[chId], NULL, (Uint16)chId, NULL, 0);	
 	}
 }
 
