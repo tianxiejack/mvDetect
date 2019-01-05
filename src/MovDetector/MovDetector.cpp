@@ -574,8 +574,6 @@ bool CMoveDetector_mv::isStopping(int chId)
 
 bool CMoveDetector_mv::isWait(int chId)
 {
-printf("statusFlag[chId] = %d ,  doneFlag[chId]= %d \n",
-	statusFlag[chId],doneFlag[chId]);
 	if( !statusFlag[chId] && doneFlag[chId] )
 		return true;
 	else
