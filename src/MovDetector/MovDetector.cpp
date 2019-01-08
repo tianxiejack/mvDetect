@@ -289,6 +289,20 @@ void CMoveDetector_mv::setFrame(cv::Mat	src ,int chId,int accuracy/*2*/,int inpu
 {	
 	ASSERT( 1 == src.channels());
 	ASSERT(chId >= 0 && chId < DETECTOR_NUM);
+	
+	if(inputThreshold < 1)
+		inputThreshold = 16;
+	if(inputMinArea < 100 )
+		inputMinArea = 100;
+	if(inputMaxArea > 1000000)
+		inputMaxArea = 1000000;
+
+	if(inputMinArea > inputMaxArea)
+	{
+		inputMinArea = 1000;
+		inputMaxArea = 70000;
+	}
+	
 	//UInt32 t1 = OSA_getCurTimeInMsec();
 	int state = 0;
 	std::vector<cv::Point>::iterator ptmp;
@@ -796,12 +810,12 @@ void CMoveDetector_mv::maskDetectProcess(int chId)
 			libvibeModel_Sequential_Segmentation_8u_C1R(model[chId], frame[chId].data, fgmask[chId].data);
 			libvibeModel_Sequential_Update_8u_C1R(model[chId], frame[chId].data, fgmask[chId].data);
 
-			/*
+			
 			cv::Mat dispMat;
 			cvtColor(fgmask[chId], dispMat, CV_GRAY2BGR);
 			imshow("Binary", dispMat);
 			waitKey(1);
-			 */
+			 
 
 			cv::Mat element = getStructuringElement(MORPH_ELLIPSE, Size(5,5));
 			cv::Mat srcMask[2];
@@ -883,25 +897,7 @@ void CMoveDetector_mv::maskDetectProcess(int chId)
 
 				m_postDetect[chId].GetMeanVar(frame[chId], m_warnTarget[chId], m_scaleX[chId],	m_scaleY[chId], cv::Size(m_offsetPt[chId].x,m_offsetPt[chId].y));
 
-			    m_postDetect[chId].WarnTargetValidAnalyse(m_warnTarget[chId],model[chId],frame[chId].data,m_scaleX[chId],m_scaleY[chId], cv::Size(m_offsetPt[chId].x,m_offsetPt[chId].y));
-#if 0			
-			printf("!!!!!size = %d \n",m_warnTarget[chId].size());
-			for(int abc = 0;abc < m_warnTarget[chId].size();++abc)
-			{
-				for(int haha = 0; haha < 10 ; haha++)
-				{
-					int x = m_warnTarget[chId][abc].targetVector[haha].x;
-					int y = m_warnTarget[chId][abc].targetVector[haha].y;
-					int w = m_warnTarget[chId][abc].targetVector[haha].width;
-					int h = m_warnTarget[chId][abc].targetVector[haha].height;
-				
-					printf("1111111111111111111111	 %s   x,y,w,h = (%d,%d,%d,%d)\n",
-						__func__,x,y,w,h);
-				}		
-			}
-
-			printf("\n\n\n\n\n\n");
-#endif
+			       m_postDetect[chId].WarnTargetValidAnalyse(m_warnTarget[chId],model[chId],frame[chId].data,m_scaleX[chId],m_scaleY[chId], cv::Size(m_offsetPt[chId].x,m_offsetPt[chId].y));
 			
 				if(m_bSelfDraw[chId] && !disframe[chId].empty())
 				{
