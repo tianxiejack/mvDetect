@@ -552,7 +552,7 @@ void	CMoveDetector_mv::getWarnTarget(std::vector<TRK_RECT_INFO>	&resTarget,	int 
 	CV_Assert(chId	<DETECTOR_NUM);
 	if(frameIndex[chId] < 20)
 		return ;
-	
+
 	_copyTarget(m_warnTarget[chId], resTarget);
 }
 
@@ -748,7 +748,8 @@ void CMoveDetector_mv::maskDetectProcess(int chId)
 {	
 	int  k;
 
-	frameIndex[chId]++;
+	if(frameIndex[chId] < 100)
+		frameIndex[chId]++;
 	
 	if( isWait(chId) )
 	{		
