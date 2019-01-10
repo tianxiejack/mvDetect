@@ -810,12 +810,12 @@ void CMoveDetector_mv::maskDetectProcess(int chId)
 			libvibeModel_Sequential_Segmentation_8u_C1R(model[chId], frame[chId].data, fgmask[chId].data);
 			libvibeModel_Sequential_Update_8u_C1R(model[chId], frame[chId].data, fgmask[chId].data);
 
-			
+			/*
 			cv::Mat dispMat;
 			cvtColor(fgmask[chId], dispMat, CV_GRAY2BGR);
 			imshow("Binary", dispMat);
 			waitKey(1);
-			 
+			*/
 
 			cv::Mat element = getStructuringElement(MORPH_ELLIPSE, Size(5,5));
 			cv::Mat srcMask[2];
