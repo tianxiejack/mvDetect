@@ -330,7 +330,9 @@ void CMoveDetector_mv::setFrame(cv::Mat	src ,int chId,int accuracy/*2*/,int inpu
 	//printf("delta t1 = %d \n",OSA_getCurTimeInMsec() - t1);
 	float dstWidth ,dstHeigth;
 	cv::Mat gray;
-	if( srcwidth*srcheight*2.0/3.0 < cv::contourArea(m_warnRoiVec[chId]) ){	
+	
+	if( srcwidth*srcheight*2.0/3.0 < cv::contourArea(m_warnRoiVec[chId]) )
+	{	
 		if(srcwidth >= 1920)
 		{
 			if( 0 == accuracy ){
@@ -398,7 +400,9 @@ void CMoveDetector_mv::setFrame(cv::Mat	src ,int chId,int accuracy/*2*/,int inpu
 		m_offsetPt[chId].y = 0;
 		minArea[chId] = inputMinArea/(x*y);
 		maxArea[chId] = inputMaxArea/(x*y);
-	}else{
+	}
+	else
+	{
 		cv::Rect boundRect;
 		boundRect = boundingRect(m_warnRoiVec[chId]);
 		boundRect.x = (boundRect.x&(~1));
@@ -432,10 +436,7 @@ void CMoveDetector_mv::setFrame(cv::Mat	src ,int chId,int accuracy/*2*/,int inpu
 		threshold[chId] = inputThreshold;		
 		m_postDetect[chId].InitializedMD(gray.cols, (gray.rows>>1)+16, gray.cols);
 		m_postDetect2[chId].InitializedMD(gray.cols,(gray.rows>>1)+16, gray.cols);
-//		if(!m_busy[chId])
-//		{
-//			OSA_tskSendMsg(&m_maskDetectTsk[chId], NULL, (Uint16)chId, NULL, 0);
-//		}
+
 		OSA_semSignal(&m_detectThrObj[chId].procNotifySem);
 		//printf("delta t4 = %d \n",OSA_getCurTimeInMsec() - t1);
 	}
@@ -446,22 +447,47 @@ void	CMoveDetector_mv::setWarningRoi(std::vector<cv::Point2i>	warnRoi,	int chId	
 	CV_Assert(chId	< DETECTOR_NUM);
 	int	k,	npoint	= warnRoi.size();
 	CV_Assert(npoint	> 2);
-	if(npoint	> 2){
+	if(npoint	> 2)
+	{
 		m_warnRoiVec[chId].resize(npoint);
 		for(k=0; k<npoint;	k++){
 			m_warnRoiVec[chId][k]	= cv::Point2i(warnRoi[k]);
 		}
+
 		m_postDetect[chId].setWarningRoi(warnRoi); // warn roi is disanormal
 		m_postDetect2[chId].setWarningRoi(warnRoi);
 
-		m_warnTarget[chId].clear();
-		m_movTarget[chId].clear();
+
+		cv::Rect boundRect;
+		boundRect = boundingRect(m_warnRoiVec[chId]);
+		boundRect.x = (boundRect.x&(~1));
+		boundRect.y = (boundRect.y&(~1));
+		m_offsetPt[chId].x = boundRect.x;
+		m_offsetPt[chId].y = boundRect.y;
+	
+
+		if(model[chId] != NULL){
+			libvibeModel_Sequential_Free(model[chId]);
+			model[chId] = NULL;
+		}
+		m_BKWidth[chId]  = 0;
+		m_BKHeight[chId] = 0;
+		threshold[chId]  = 0;
+
+		if(m_warnMode[chId] == WARN_MOVEDETECT_MODE)
+			m_movTarget[chId].clear();
+		else if(m_warnMode[chId] == WARN_WARN_MODE)
+			m_warnTarget[chId].clear();
+
+		
 		if(m_notifyFunc != NULL)
 		{
 			(*m_notifyFunc)(m_context, chId);
 		}
 			
-	}else{
+	}
+	else
+	{	
 		OSA_printf("%s: warning	roi	point	num=%d < 3\n", __func__,	npoint);
 	}
 }

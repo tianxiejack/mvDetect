@@ -68,14 +68,14 @@ public:
 	void	setNMixtures(int nmix,	int chId	= 0);
 	void	setVarInit(float initvalue,	int chId	= 0);
 	void	setShadowValue(int value,	int chId	= 0);
-	void	setShadowThreshold(double threshold,	int chId	= 0);
+	void	setShadowThreshold(double threshold, int chId	= 0);
 	void	setNFrames(int nframes, int chId = 0);
 #endif
 
 public:
-	int		creat(int history = 500,  float varThreshold = 16, bool bShadowDetection=true);
-	int		init(LPNOTIFYFUNC	notifyFunc, void *context);
-	int		destroy();
+	int	creat(int history = 500,  float varThreshold = 16, bool bShadowDetection=true);
+	int	init(LPNOTIFYFUNC	notifyFunc, void *context);
+	int	destroy();
 	void	setFrame(cv::Mat	src ,int chId,int accuracy=2,int inputMinArea=8,int inputMaxArea=200,int threshold = 30);
 
 	void	clearWarningRoi(int chId	= 0);//清除警戒区

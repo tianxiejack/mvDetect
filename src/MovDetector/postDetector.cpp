@@ -670,7 +670,7 @@ void	CPostDetect::WarnTargetBGFGTrk_New(const cv::Size sz)
 }
 
 #if 1
-void CPostDetect::WarnTargetValidAnalyse(std::vector<TRK_RECT_INFO> &warnTarget,vibeModel_Sequential_t *model,const uint8_t *image_data,\
+void CPostDetect::WarnTargetValidAnalyse(std::vector<TRK_RECT_INFO> &warnTarget,vibeModel_Sequential_t *model,const uint8_t *image_data,
 		float nScalX , float nScalY , cv::Size offsize)
 {
 	bool reflag ;
@@ -742,9 +742,18 @@ void CPostDetect::GetMeanVar(const cv::Mat frame, std::vector<TRK_RECT_INFO> &wa
 		rec.x =(rec.x-offsize.width)/nScalX;
 		rec.y =(rec.y-offsize.height)/nScalY;
 		rec.width /=nScalX;	rec.height /=nScalY;
-		meanStdDev(frame(rec), mean, var);
-		pTrkInfo->mean = mean.val[0];
-		pTrkInfo->var = var.val[0];
+		if(( rec.x - rec.width/2 > 0 && rec.x + rec.width/2 < frame.cols)
+			&& ( rec.y - rec.height/2 > 0 && rec.y + rec.height/2 < frame.rows))
+		{
+			meanStdDev(frame(rec), mean, var);
+			pTrkInfo->mean = mean.val[0];
+			pTrkInfo->var = var.val[0];
+		}
+		else
+		{
+			pTrkInfo->mean = 0;
+			pTrkInfo->var = 0;
+		}
 	}
 }
 
