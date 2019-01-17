@@ -742,8 +742,8 @@ void CPostDetect::GetMeanVar(const cv::Mat frame, std::vector<TRK_RECT_INFO> &wa
 		rec.x =(rec.x-offsize.width)/nScalX;
 		rec.y =(rec.y-offsize.height)/nScalY;
 		rec.width /=nScalX;	rec.height /=nScalY;
-		if(( rec.x - rec.width/2 > 0 && rec.x + rec.width/2 < frame.cols)
-			&& ( rec.y - rec.height/2 > 0 && rec.y + rec.height/2 < frame.rows))
+		if(( rec.x  > 0 && (rec.x + rec.width < frame.cols))
+			&& ( rec.y > 0 && (rec.y + rec.height < frame.rows)))
 		{
 			meanStdDev(frame(rec), mean, var);
 			pTrkInfo->mean = mean.val[0];

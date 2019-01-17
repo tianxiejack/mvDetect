@@ -54,12 +54,13 @@ CMoveDetector_mv::CMoveDetector_mv()
 	doneFlag[i]   = true;
 		
 	}
-	
+	OSA_mutexCreate(&syncSetWaringROI);
 }
 
 CMoveDetector_mv::~CMoveDetector_mv()
 {
 	destroy();
+	OSA_mutexDelete(&syncSetWaringROI);
 }
 
 int CMoveDetector_mv::creat(int history /*= 500*/,  float varThreshold /*= 16*/, bool bShadowDetection /*=true*/)
@@ -467,9 +468,12 @@ void	CMoveDetector_mv::setWarningRoi(std::vector<cv::Point2i>	warnRoi,	int chId	
 	
 
 		if(model[chId] != NULL){
+			OSA_mutexLock(&syncSetWaringROI);
 			libvibeModel_Sequential_Free(model[chId]);
 			model[chId] = NULL;
+			OSA_mutexUnlock(&syncSetWaringROI);
 		}
+		
 		m_BKWidth[chId]  = 0;
 		m_BKHeight[chId] = 0;
 		threshold[chId]  = 0;
@@ -831,6 +835,7 @@ void CMoveDetector_mv::maskDetectProcess(int chId)
 			m_BKHeight[chId] = frame[chId].rows;
 			m_movTarget[chId].clear();
 		}
+		OSA_mutexLock(&syncSetWaringROI);
 		if(model[chId] != NULL){
 			fgmask[chId] = Mat(frame[chId].rows, frame[chId].cols, CV_8UC1);
 
@@ -858,7 +863,7 @@ void CMoveDetector_mv::maskDetectProcess(int chId)
 				cv::dilate(srcMask[k], srcMask[k], element);
 			}
 		}
-
+		OSA_mutexUnlock(&syncSetWaringROI);
 #else
 		frameCount++;
 		if(frameCount > 500)

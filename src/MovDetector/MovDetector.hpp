@@ -12,7 +12,7 @@
 #include "postDetector.hpp"
 #include "MOG3.hpp"
 #include "MSTracker.h"
-
+#include "osa_mutex.h"
 #include "vibe-background-sequential.h" 	//__MV_DETECT_VIBE_
 
 using namespace cv;
@@ -143,6 +143,7 @@ protected:
 	void maskDetectProcess(int chId);
 
 private:
+	OSA_MutexHndl syncSetWaringROI;
 	DETECT_ProcThrObj	m_detectThrObj[DETECTOR_NUM];
 	int Detect_threadCreate(int detectId);
 	int Detect_threadDestroy(int detectId);
