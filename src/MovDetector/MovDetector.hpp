@@ -99,6 +99,10 @@ public:
 	bool isWait(int chId);
 	void	mvOpen(int chId);
 	void	mvClose(int chId);
+	void stoppingReset(int chId);
+	void destoryHistory(int chId);
+	void speedupThreshold(int chId);
+	void recoverThreshold(int chId);
 	
 public:
 	MOG2_PARAM	m_mogParam;
@@ -143,6 +147,8 @@ protected:
 	void maskDetectProcess(int chId);
 
 private:
+	bool stoppingRestFlag[DETECTOR_NUM];
+	unsigned int matchThreshHoldBak;
 	OSA_MutexHndl syncSetWaringROI;
 	DETECT_ProcThrObj	m_detectThrObj[DETECTOR_NUM];
 	int Detect_threadCreate(int detectId);
@@ -172,7 +178,7 @@ private:
 	cv::Point	m_offsetPt[DETECTOR_NUM];
 	int			m_bInterval[DETECTOR_NUM];
 	bool 		m_busy[DETECTOR_NUM];
-	char 	frameIndex[DETECTOR_NUM];
+	unsigned int  	frameIndex[DETECTOR_NUM];
 
 };
 }

@@ -691,8 +691,10 @@ void CPostDetect::WarnTargetValidAnalyse(std::vector<TRK_RECT_INFO> &warnTarget,
 		if(warnTarget[i].trk_frames > 9)
 		for( int j = 1 ; j < 10 ;  ++j )
 		{
-			if( (x == warnTarget[i].targetVector[j].x) && (y == warnTarget[i].targetVector[j].y)
-				&& ( w == warnTarget[i].targetVector[j].width ) && ( h == warnTarget[i].targetVector[j].height) )
+			if( (abs((x + w/2) - (warnTarget[i].targetVector[j].x + warnTarget[i].targetVector[j].width/2)) < 5)
+				&& ( abs((y + y/2) - warnTarget[i].targetVector[j].y + warnTarget[i].targetVector[j].height/2)<5)
+				&& ( abs( w - warnTarget[i].targetVector[j].width) < 5 ) 
+				&& ( abs( h - warnTarget[i].targetVector[j].height) < 5))
 			{
 				reflag = true;
 				continue;

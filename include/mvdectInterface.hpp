@@ -35,6 +35,7 @@ public:
 	virtual bool	isStopping(int chId){};
 	virtual void	mvOpen(int chId){};
 	virtual void	mvClose(int chId){};
+	virtual void     stoppingReset(int chId){};
 };
 CMvDectInterface *MvDetector_Create();
 #endif /* MVDECTINTERFACE_H_ */

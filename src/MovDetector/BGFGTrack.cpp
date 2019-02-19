@@ -462,8 +462,8 @@ void	CBGFGTracker::GetTrackTarget(std::vector<TRK_RECT_INFO> &lostTarget, std::v
 			{
 				invadeTarget.push_back(*pTrkInfo);
 			}
-
-			warnTarget.push_back(*pTrkInfo);
+			if( pTrkInfo->trk_frames < 100 )
+				warnTarget.push_back(*pTrkInfo);
 		}
 	}
 }
