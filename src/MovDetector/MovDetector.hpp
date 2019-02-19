@@ -101,8 +101,8 @@ public:
 	void	mvClose(int chId);
 	void stoppingReset(int chId);
 	void destoryHistory(int chId);
-	void speedupThreshold(int chId);
-	void recoverThreshold(int chId);
+	void speedupUpdateFactor(int chId);
+	void recoverUpdateFactor(int chId);
 	
 public:
 	MOG2_PARAM	m_mogParam;

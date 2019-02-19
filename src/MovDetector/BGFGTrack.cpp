@@ -447,9 +447,10 @@ void	CBGFGTracker::GetTrackTarget(std::vector<TRK_RECT_INFO> &lostTarget, std::v
 
 	int	k;
 	TRK_RECT_INFO	*pTrkInfo;
-
+	int i,j;
 	for(k=0; k<SAMPLE_NUMBER;	k++)
 	{
+		j=0;
 		pTrkInfo	= &m_warnTarget[k];
 		pTrkInfo->index = k;
 		if(pTrkInfo->trkState	== TRK_STATE_TRACK)
@@ -462,8 +463,8 @@ void	CBGFGTracker::GetTrackTarget(std::vector<TRK_RECT_INFO> &lostTarget, std::v
 			{
 				invadeTarget.push_back(*pTrkInfo);
 			}
-			if( pTrkInfo->trk_frames < 100 )
-				warnTarget.push_back(*pTrkInfo);
+
+			warnTarget.push_back(*pTrkInfo);
 		}
 	}
 }

@@ -669,7 +669,8 @@ void	CPostDetect::WarnTargetBGFGTrk_New(const cv::Size sz)
 	m_bgfgTrack.TrackProcess(sz, m_pPatterns,	m_patternnum);
 }
 
-#if 1
+
+
 void CPostDetect::WarnTargetValidAnalyse(std::vector<TRK_RECT_INFO> &warnTarget,vibeModel_Sequential_t *model,const uint8_t *image_data,
 		float nScalX , float nScalY , cv::Size offsize)
 {
@@ -691,10 +692,11 @@ void CPostDetect::WarnTargetValidAnalyse(std::vector<TRK_RECT_INFO> &warnTarget,
 		if(warnTarget[i].trk_frames > 9)
 		for( int j = 1 ; j < 10 ;  ++j )
 		{
-			if( (abs((x + w/2) - (warnTarget[i].targetVector[j].x + warnTarget[i].targetVector[j].width/2)) < 5)
-				&& ( abs((y + y/2) - warnTarget[i].targetVector[j].y + warnTarget[i].targetVector[j].height/2)<5)
-				&& ( abs( w - warnTarget[i].targetVector[j].width) < 5 ) 
-				&& ( abs( h - warnTarget[i].targetVector[j].height) < 5))
+			if( ( abs((x + w/2) - (warnTarget[i].targetVector[j].x + warnTarget[i].targetVector[j].width/2)) < 40)
+				&& ( abs((y + y/2) - warnTarget[i].targetVector[j].y + warnTarget[i].targetVector[j].height/2) < 40)
+				//&& ( abs( w - warnTarget[i].targetVector[j].width) < 40 ) 
+				//&& ( abs( h - warnTarget[i].targetVector[j].height) < 40)
+				)
 			{
 				reflag = true;
 				continue;
@@ -721,11 +723,11 @@ void CPostDetect::WarnTargetValidAnalyse(std::vector<TRK_RECT_INFO> &warnTarget,
 			debugLostTarget.push_back(pTmp);
 
 			m_bgfgTrack.ClearTrkTarget(warnTarget[i].index);
-			//warnTarget.erase(warnTarget.begin() + i);
+			warnTarget.erase(warnTarget.begin() + i);
 		}
 	}
 }
-#endif
+
 
 void	CPostDetect::TargetBGFGAnalyse()
 {

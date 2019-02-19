@@ -14,7 +14,7 @@ static int _gGapFrames = 5;
 namespace mv_detect{
 
 #define	RECORD_NUM	1000	
-#define	HOLDING_NUM	800
+#define	HOLDING_NUM	50
 #define	SPEEDUP_NUM	100
 
 CMoveDetector_mv::CMoveDetector_mv()
@@ -661,17 +661,17 @@ void CMoveDetector_mv::mvClose(int chId)
 	}
 }
 
-void  CMoveDetector_mv::speedupThreshold(int chId /*= 0*/)
+void  CMoveDetector_mv::speedupUpdateFactor(int chId /*= 0*/)
 {
 	if(model[chId]!= NULL)	{
-		libvibeModel_Sequential_SetMatchingThreshold(model[chId], 1);
+		libvibeModel_Sequential_SetUpdateFactor(model[chId], 1);
 	}
 }
 
-void  CMoveDetector_mv::recoverThreshold(int chId /*= 0*/)
+void  CMoveDetector_mv::recoverUpdateFactor(int chId /*= 0*/)
 {
 	if(model[chId]!= NULL)	{
-		libvibeModel_Sequential_SetMatchingThreshold(model[chId], matchThreshHoldBak);
+		libvibeModel_Sequential_SetUpdateFactor(model[chId], matchThreshHoldBak);
 	}
 }
 
@@ -854,16 +854,16 @@ void CMoveDetector_mv::maskDetectProcess(int chId)
 	static int  frameCount = 0;
 
 	if( frameIndex[chId] < SPEEDUP_NUM )
-		speedupThreshold(chId);
+		speedupUpdateFactor(chId);
 	else
-		recoverThreshold(chId);
+		recoverUpdateFactor(chId);
 	
 	if(!frameIn[chId].empty())
 	{
 		int64 t1 = getTickCount();//OSA_getCurTimeInMsec() ;
 
 		frameIn[chId].copyTo(frame[chId]);
-		//frameIn[chId].release();
+		
 #if 1
 		if(frame[chId].cols != m_BKWidth[chId] || frame[chId].rows != m_BKHeight[chId]){
 			if(model[chId]!= NULL)	{
@@ -879,6 +879,7 @@ void CMoveDetector_mv::maskDetectProcess(int chId)
 			m_movTarget[chId].clear();
 		}
 		OSA_mutexLock(&syncSetWaringROI);
+	
 		if(model[chId] != NULL){
 			fgmask[chId] = Mat(frame[chId].rows, frame[chId].cols, CV_8UC1);
 
@@ -891,7 +892,7 @@ void CMoveDetector_mv::maskDetectProcess(int chId)
 			imshow("Binary", dispMat);
 			waitKey(1);
 			*/
-
+			
 			cv::Mat element = getStructuringElement(MORPH_ELLIPSE, Size(5,5));
 			cv::Mat srcMask[2];
 			for(k=0; k<2; k++){
