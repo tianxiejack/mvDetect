@@ -439,7 +439,7 @@ int	CBGFGTracker::TrackAnalyse(std::vector<cv::Point2i>		warnRoi)
 
 
 
-void	CBGFGTracker::GetTrackTarget(std::vector<TRK_RECT_INFO> &lostTarget, std::vector<TRK_RECT_INFO> &invadeTarget, std::vector<TRK_RECT_INFO> &warnTarget)
+void	CBGFGTracker::GetTrackTarget(std::vector<TRK_RECT_INFO> &lostTarget, std::vector<TRK_RECT_INFO> &invadeTarget, std::vector<TRK_RECT_INFO> &warnTarget , int frameIndex)
 {
 	lostTarget.clear();
 	invadeTarget.clear();
@@ -463,8 +463,9 @@ void	CBGFGTracker::GetTrackTarget(std::vector<TRK_RECT_INFO> &lostTarget, std::v
 			{
 				invadeTarget.push_back(*pTrkInfo);
 			}
-
-			warnTarget.push_back(*pTrkInfo);
+			int chooseNumber = frameIndex > HOLDING_NUM ?  HOLDING_NUM : 1 ;
+			if( pTrkInfo->trk_frames > chooseNumber )
+				warnTarget.push_back(*pTrkInfo);
 		}
 	}
 }

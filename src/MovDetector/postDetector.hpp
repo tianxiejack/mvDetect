@@ -50,7 +50,7 @@ public:
 	void		WarnTargetBGFGTrk(const cv::Size sz);
 	void		WarnTargetBGFGTrk_New(const cv::Size sz);
 	void		TargetBGFGAnalyse();
-	void		GetBGFGTarget(std::vector<TRK_RECT_INFO> &lostTarget, std::vector<TRK_RECT_INFO> &invadeTarget, std::vector<TRK_RECT_INFO> &warnTarget);
+	void		GetBGFGTarget(std::vector<TRK_RECT_INFO> &lostTarget, std::vector<TRK_RECT_INFO> &invadeTarget, std::vector<TRK_RECT_INFO> &warnTarget , int frameIndex);
 	void		DrawBGFGTarget(cv::Mat	frame);
 	int			GetWarnState(){return m_warnState;};
 	void 		validTarget(std::vector<TRK_RECT_INFO>	TmpMVTarget, std::vector<TRK_RECT_INFO>	&MVTarget);

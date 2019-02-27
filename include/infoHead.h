@@ -7,6 +7,8 @@
 #define		TRK_TG_NUM		10
 #define  		SAMPLE_NUMBER 	256
 #define		DETECTOR_NUM		5
+#define		HOLDING_NUM		50
+
 
 #define ASSERT			CV_Assert
 #define TRACE			printf

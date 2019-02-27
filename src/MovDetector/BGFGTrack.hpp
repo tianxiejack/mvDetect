@@ -21,7 +21,7 @@ public:
 	void	SetTrkTarget(const std::vector<TRK_RECT_INFO>	warnTarget);
 	void	TrackProcess(const cv::Size sz, Pattern  *curPatterns,	 int	numPatterns);
 	int		TrackAnalyse(std::vector<cv::Point2i>	warnRoi);
-	void	GetTrackTarget(std::vector<TRK_RECT_INFO> &lostTarget, std::vector<TRK_RECT_INFO> &invadeTarget, std::vector<TRK_RECT_INFO> &warnTarget);
+	void	GetTrackTarget(std::vector<TRK_RECT_INFO> &lostTarget, std::vector<TRK_RECT_INFO> &invadeTarget, std::vector<TRK_RECT_INFO> &warnTarget,int frameIndex);
 	void	ClearTrkTarget(int	Idx);
 
 	void	SetTrkThred(TRK_THRED	 trkThred);

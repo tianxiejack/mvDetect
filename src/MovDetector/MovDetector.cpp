@@ -14,7 +14,6 @@ static int _gGapFrames = 5;
 namespace mv_detect{
 
 #define	RECORD_NUM	1000	
-#define	HOLDING_NUM	50
 #define	SPEEDUP_NUM	100
 
 CMoveDetector_mv::CMoveDetector_mv()
@@ -568,8 +567,6 @@ void	CMoveDetector_mv::getInvadeTarget(std::vector<TRK_RECT_INFO>	&resTarget,	in
 void	CMoveDetector_mv::getMoveTarget(std::vector<TRK_RECT_INFO>	&resTarget,	int chId /*= 0*/)
 {
 	CV_Assert(chId < DETECTOR_NUM);
-	if(frameIndex[chId] < HOLDING_NUM)
-		return ;
 		
 	if(m_warnMode[chId] == WARN_MOVEDETECT_MODE)
 		_copyTarget(m_movTarget[chId], resTarget);
@@ -586,9 +583,6 @@ void	CMoveDetector_mv::getBoundTarget(std::vector<TRK_RECT_INFO>	&resTarget,	int
 void	CMoveDetector_mv::getWarnTarget(std::vector<TRK_RECT_INFO>	&resTarget,	int chId	/*= 0*/)
 {
 	CV_Assert(chId	<DETECTOR_NUM);
-	if(frameIndex[chId] < HOLDING_NUM)
-		return ;
-
 	_copyTarget(m_warnTarget[chId], resTarget);
 }
 
@@ -886,12 +880,12 @@ void CMoveDetector_mv::maskDetectProcess(int chId)
 			libvibeModel_Sequential_Segmentation_8u_C1R(model[chId], frame[chId].data, fgmask[chId].data);
 			libvibeModel_Sequential_Update_8u_C1R(model[chId], frame[chId].data, fgmask[chId].data);
 
-			/*
+			#if 0
 			cv::Mat dispMat;
 			cvtColor(fgmask[chId], dispMat, CV_GRAY2BGR);
 			imshow("Binary", dispMat);
 			waitKey(1);
-			*/
+			#endif
 			
 			cv::Mat element = getStructuringElement(MORPH_ELLIPSE, Size(5,5));
 			cv::Mat srcMask[2];
@@ -969,7 +963,7 @@ void CMoveDetector_mv::maskDetectProcess(int chId)
 				m_postDetect[chId].SetTargetBGFGTrk();
 				m_postDetect[chId].WarnTargetBGFGTrk_New(bakOrigframe[chId].size());
 				//m_postDetect[chId].TargetBGFGAnalyse();
-				m_postDetect[chId].GetBGFGTarget(m_warnLostTarget[chId], m_warnInvadeTarget[chId], m_warnTarget[chId]);
+				m_postDetect[chId].GetBGFGTarget(m_warnLostTarget[chId], m_warnInvadeTarget[chId], m_warnTarget[chId] , frameIndex[chId]);
 
 				m_postDetect[chId].GetMeanVar(frame[chId], m_warnTarget[chId], m_scaleX[chId],	m_scaleY[chId], cv::Size(m_offsetPt[chId].x,m_offsetPt[chId].y));
 

@@ -692,14 +692,13 @@ void CPostDetect::WarnTargetValidAnalyse(std::vector<TRK_RECT_INFO> &warnTarget,
 		if(warnTarget[i].trk_frames > 9)
 		for( int j = 1 ; j < 10 ;  ++j )
 		{
-			if( ( abs((x + w/2) - (warnTarget[i].targetVector[j].x + warnTarget[i].targetVector[j].width/2)) < 40)
-				&& ( abs((y + y/2) - warnTarget[i].targetVector[j].y + warnTarget[i].targetVector[j].height/2) < 40)
+			if( ( abs((x + w/2) - (warnTarget[i].targetVector[j].x + warnTarget[i].targetVector[j].width/2)) < 1)
+				&& ( abs((y + h/2) - (warnTarget[i].targetVector[j].y + warnTarget[i].targetVector[j].height/2)) < 1)
 				//&& ( abs( w - warnTarget[i].targetVector[j].width) < 40 ) 
 				//&& ( abs( h - warnTarget[i].targetVector[j].height) < 40)
 				)
 			{
 				reflag = true;
-				continue;
 			}
 			else
 			{
@@ -761,9 +760,9 @@ void CPostDetect::GetMeanVar(const cv::Mat frame, std::vector<TRK_RECT_INFO> &wa
 	}
 }
 
-void	CPostDetect::GetBGFGTarget(std::vector<TRK_RECT_INFO> &lostTarget, std::vector<TRK_RECT_INFO> &invadeTarget, std::vector<TRK_RECT_INFO> &warnTarget)
+void	CPostDetect::GetBGFGTarget(std::vector<TRK_RECT_INFO> &lostTarget, std::vector<TRK_RECT_INFO> &invadeTarget, std::vector<TRK_RECT_INFO> &warnTarget,int frameIndex)
 {
-	m_bgfgTrack.GetTrackTarget(lostTarget, invadeTarget, warnTarget);
+	m_bgfgTrack.GetTrackTarget(lostTarget, invadeTarget, warnTarget , frameIndex );
 }
 
 void	CPostDetect::DrawBGFGTarget(cv::Mat	frame)
