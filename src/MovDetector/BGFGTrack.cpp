@@ -437,7 +437,15 @@ int	CBGFGTracker::TrackAnalyse(std::vector<cv::Point2i>		warnRoi)
 	return warnState;
 }
 
-
+bool chargeRatio(cv::Rect rect)
+{
+	double d;
+	d = (double)rect.width/(double)rect.height ;
+	if( d > 0.5  && d < 2.0 )
+		return true;
+	else
+		return false;
+}
 
 void	CBGFGTracker::GetTrackTarget(std::vector<TRK_RECT_INFO> &lostTarget, std::vector<TRK_RECT_INFO> &invadeTarget, std::vector<TRK_RECT_INFO> &warnTarget , int frameIndex)
 {
@@ -463,9 +471,10 @@ void	CBGFGTracker::GetTrackTarget(std::vector<TRK_RECT_INFO> &lostTarget, std::v
 			{
 				invadeTarget.push_back(*pTrkInfo);
 			}
-			int chooseNumber = frameIndex > HOLDING_NUM ?  HOLDING_NUM : 1 ;
+			int chooseNumber = frameIndex > HOLDING_NUM ?  10 : 1 ;
 			if( pTrkInfo->trk_frames > chooseNumber )
-				warnTarget.push_back(*pTrkInfo);
+				if(  chargeRatio(pTrkInfo->targetRect )  )
+					warnTarget.push_back(*pTrkInfo);
 		}
 	}
 }
