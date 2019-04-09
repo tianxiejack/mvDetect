@@ -557,10 +557,10 @@ void	CPostDetect::warnTargetSelect( float nScalX /*= 1*/, float nScalY /*= 1*/)
 void	CPostDetect::warnTargetSelect_New(const std::vector<TRK_RECT_INFO>	MVTarget)
 {
 	int i, nsize;
+	
 	std::vector<cv::Point2f>		polyRoi;
-
 	nsize = m_warnRoi.size();
-	CV_Assert(nsize	>2);
+	CV_Assert(nsize >2);
 	polyRoi.resize(nsize);
 
 	for(i=0; i<nsize; i++){
@@ -577,34 +577,15 @@ void	CPostDetect::warnTargetSelect_New(const std::vector<TRK_RECT_INFO>	MVTarget
 		cv::Rect targetRec = MVTarget[i].targetRect;
 		cv::Point2f rc_center = cv::Point2f((float)targetRec.x+targetRec.width/2.0, (float)targetRec.y+targetRec.height/2.0);
 		double	distance	= cv::pointPolygonTest( polyRoi, rc_center, true );///1.0
-		double	tgw	= targetRec.width;
-		double	tgh	=  targetRec.height;
-		double	diagd	 = sqrt(tgw*tgw+tgh*tgh);
-		double	maxd	=  diagd*3/4;
-		double	mind	=	tgw>tgh?tgw/4:tgh/4;
-		maxd = maxd<60.0?60.0:maxd;
 
 		TRK_RECT_INFO	curInfo;
-		curInfo.targetRect		=	targetRec;
+		curInfo.targetRect		= targetRec;
 		curInfo.distance		= distance;
 		curInfo.disp_frames	=	0;
 		curInfo.warnType	=	WARN_STATE_IDLE;
 		curInfo.trk_frames	= 0;
 
-		if(distance>=mind /*&& distance<=maxd	*/){
-			curInfo.targetType = TARGET_IN_POLYGON;
-			m_warnTargetRec.push_back(curInfo);
-		}else if(distance>-mind	&&	distance<mind	){
-			curInfo.targetType = TARGET_IN_EDGE;
-			m_warnTargetRec.push_back(curInfo);
-		}else if(/*distance>= -maxd	&&	*/distance<=	-mind	){
-			curInfo.targetType = TARGET_OUT_POLYGON;
-			//m_warnTargetRec.push_back(curInfo);
-		}else{
-			curInfo.targetType = TARGET_NORAM;
-			m_warnTargetRec.push_back(curInfo);
-		}
-
+		m_warnTargetRec.push_back(curInfo);
 	}
 }
 
@@ -689,23 +670,27 @@ void CPostDetect::WarnTargetValidAnalyse(std::vector<TRK_RECT_INFO> &warnTarget,
 
 		//printf("%s  line: %d     x,y,w,h = (%d,%d,%d,%d)\n",__func__,__LINE__,x,y,w,h);
 		
-		if(warnTarget[i].trk_frames > 9)
-		for( int j = 1 ; j < 10 ;  ++j )
+		if(warnTarget[i].trk_frames > 5)
 		{
-			if( ( abs((x + w/2) - (warnTarget[i].targetVector[j].x + warnTarget[i].targetVector[j].width/2)) < 1)
-				&& ( abs((y + h/2) - (warnTarget[i].targetVector[j].y + warnTarget[i].targetVector[j].height/2)) < 1)
-				//&& ( abs( w - warnTarget[i].targetVector[j].width) < 40 ) 
-				//&& ( abs( h - warnTarget[i].targetVector[j].height) < 40)
-				)
+			for( int j = 1 ; j < warnTarget[i].trk_frames ;  ++j )
 			{
-				reflag = true;
-			}
-			else
-			{
-				reflag = false;
-				break;
+				if( ( abs((x + w/2) - (warnTarget[i].targetVector[j].x + warnTarget[i].targetVector[j].width/2)) < 5)
+					&& ( abs((y + h/2) - (warnTarget[i].targetVector[j].y + warnTarget[i].targetVector[j].height/2)) < 5)
+					//&& ( abs( w - warnTarget[i].targetVector[j].width) < 40 ) 
+					//&& ( abs( h - warnTarget[i].targetVector[j].height) < 40)
+					)
+				{
+					reflag = true;
+				}
+				else
+				{
+					reflag = false;
+					break;
+				}
 			}
 		}
+		else
+			reflag = true;
 
 		if(reflag)
 		{

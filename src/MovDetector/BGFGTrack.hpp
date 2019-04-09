@@ -28,6 +28,8 @@ public:
 	void	DrawWarnTarget(cv::Mat	frame);
 	void	DrawLostTarget(cv::Mat	frame,std::vector<LOST_RECT_INFO> &lostTarget);
 	
+	bool  	judgeEdgeInOut(TRK_RECT_INFO* curInfo );
+	
 public:
 
 	TRK_RECT_INFO		m_warnTarget[SAMPLE_NUMBER];

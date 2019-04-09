@@ -315,6 +315,9 @@ void CMoveDetector_mv::setFrame(cv::Mat	src ,int chId,int accuracy/*2*/,int inpu
 
 	int srcwidth =src.cols,  srcheight = src.rows;
 
+	//if(model[chId] != NULL)
+	//	printf("factor = %u \n", libvibeModel_Sequential_GetUpdateFactor(model[chId]));
+
 	//if(model[chId] == NULL)
 	{
 		if(m_warnRoiVec[chId].size() < 3){
@@ -798,36 +801,26 @@ bool CMoveDetector_mv::getFrameMV(cv::Mat preFrame, cv::Mat curFrame, cv::Point2
 }
 #define PRINTFABLE 0
 
-void CMoveDetector_mv::maskDetectProcess(int chId)
-{	
-	int  k;
-	
+bool CMoveDetector_mv::judgeFirst(int chId)
+{
 	if( stoppingRestFlag[chId] )
 	{
 		destoryHistory(chId);
 		doneFlag[chId] = true;	
 		stoppingRestFlag[chId] = false ;
-		return ;
+		return false;
 	}
 
 	if(frameIndex[chId] <= RECORD_NUM)
 		frameIndex[chId]++;
-	
+
 	if( isWait(chId) )		
-		return ;
+		return false;
 
 	CV_Assert(chId < DETECTOR_NUM);
 	if(m_bExit)
-		return;
+		return false;
 	
-	int	bRun = false;
-	if((m_bInterval[chId]%_gGapFrames)==0){
-		bRun = true;
-	}
-	m_bInterval[chId]++;
-	if(m_bInterval[chId] == (_gGapFrames+1))
-		m_bInterval[chId] = 0;
-
 	if(m_warnRoiVec[chId].size() == 0)
 	{
 		m_movTarget[chId].clear();
@@ -839,9 +832,83 @@ void CMoveDetector_mv::maskDetectProcess(int chId)
 		{
 			(*m_notifyFunc)(m_context, chId);
 		}
-		return;
+		return false;
 	}
+
+	return true;
+}
+
+void CMoveDetector_mv::warnMoveDetectModeHandle(std::vector<TRK_RECT_INFO>& MVTarget,int chId)
+{
+	m_postDetect[chId].validTarget(MVTarget, m_movTarget[chId]);
+	if(m_bSelfDraw[chId] && !disframe[chId].empty() )
+	{
+		int	npoint	= m_warnRoiVec[chId].size();
+		for(int i=0; i<npoint; i++)
+		{
+			line(disframe[chId], m_warnRoiVec[chId][i], m_warnRoiVec[chId][(i+1)%npoint], cvScalar(0,0,255,255), 4, 8);
+		}
+		m_postDetect[chId].DrawWarnTarget(disframe[chId], m_movTarget[chId]);
+	}
+}
+
+void CMoveDetector_mv::warnModeHandle(std::vector<TRK_RECT_INFO>& MVTarget,int chId)
+{
+	m_postDetect[chId].warnTargetSelect_New(MVTarget);
+	m_postDetect[chId].SetTargetBGFGTrk();
+	m_postDetect[chId].WarnTargetBGFGTrk_New(bakOrigframe[chId].size());
+	//m_postDetect[chId].TargetBGFGAnalyse();
+	m_postDetect[chId].GetBGFGTarget(m_warnLostTarget[chId], m_warnInvadeTarget[chId], m_warnTarget[chId] , frameIndex[chId]);
+
+	m_postDetect[chId].GetMeanVar(frame[chId], m_warnTarget[chId], m_scaleX[chId],	m_scaleY[chId], cv::Size(m_offsetPt[chId].x,m_offsetPt[chId].y));
+
+	m_postDetect[chId].WarnTargetValidAnalyse(m_warnTarget[chId],model[chId],frame[chId].data,m_scaleX[chId],m_scaleY[chId], cv::Size(m_offsetPt[chId].x,m_offsetPt[chId].y));
+
+	if(m_bSelfDraw[chId] && !disframe[chId].empty())
+	{
+		int	npoint	= m_warnRoiVec[chId].size();
+		for(int i=0; i<npoint; i++)
+		{
+			line(disframe[chId], m_warnRoiVec[chId][i], m_warnRoiVec[chId][(i+1)%npoint], cvScalar(0,0,255,255), 4, 8);
+		}
+		m_postDetect[chId].DrawBGFGTarget(disframe[chId]);
+		m_postDetect[chId].DrawLOSTTarget(disframe[chId]);
+	}
+}
+
+void CMoveDetector_mv::warnTrackModeHandle(std::vector<TRK_RECT_INFO>& MVTarget,int chId,int bRun)
+{
+	m_MSTrkObj[chId].Process(bakOrigframe[chId], MVTarget, bRun);
+	if(m_bSelfDraw[chId] && !disframe[chId].empty())
+	{
+		int npoint	= m_warnRoiVec[chId].size();
+		for(int i=0; i<npoint; i++)
+		{
+			line(disframe[chId], m_warnRoiVec[chId][i], m_warnRoiVec[chId][(i+1)%npoint], cvScalar(0,0,255,255), 4, 8);
+		}
+		m_MSTrkObj[chId].DrawTrkTarget(disframe[chId], disframe[chId], false);
+		//m_MSTrkObj[chId].DrawTrkTarget(disframe[chId], disframe[chId], true);
+	}
+}
+
+
+void CMoveDetector_mv::maskDetectProcess(int chId)
+{	
+	int  k;
+	bool retFlag = true;	// 1 -- continue  , 0 --- fail & return
+	retFlag = judgeFirst(chId);
+	if(!retFlag)
+		return ;
 	
+	int	bRun = false;
+	if((m_bInterval[chId]%_gGapFrames)==0){
+		bRun = true;
+	}
+	m_bInterval[chId]++;
+	if(m_bInterval[chId] == (_gGapFrames+1))
+		m_bInterval[chId] = 0;
+
+			
 	m_busy[chId] = true;
 	
 	static bool update_bg_model = true;
@@ -945,54 +1012,16 @@ void CMoveDetector_mv::maskDetectProcess(int chId)
 
 			if( (m_warnMode[chId] & WARN_MOVEDETECT_MODE)	)	//move target detect
 			{
-				m_postDetect[chId].validTarget(tmpMVTarget, m_movTarget[chId]);
-
-				if(m_bSelfDraw[chId] && !disframe[chId].empty() )
-				{
-					int	npoint	= m_warnRoiVec[chId].size();
-					for(int i=0; i<npoint; i++)
-					{
-						line(disframe[chId], m_warnRoiVec[chId][i], m_warnRoiVec[chId][(i+1)%npoint], cvScalar(0,0,255,255), 4, 8);
-					}
-					m_postDetect[chId].DrawWarnTarget(disframe[chId], m_movTarget[chId]);
-				}
+				warnMoveDetectModeHandle(tmpMVTarget,chId);
 			}
 			else if( (m_warnMode[chId] & WARN_WARN_MODE))
 			{
-				m_postDetect[chId].warnTargetSelect_New(tmpMVTarget);
-				m_postDetect[chId].SetTargetBGFGTrk();
-				m_postDetect[chId].WarnTargetBGFGTrk_New(bakOrigframe[chId].size());
-				//m_postDetect[chId].TargetBGFGAnalyse();
-				m_postDetect[chId].GetBGFGTarget(m_warnLostTarget[chId], m_warnInvadeTarget[chId], m_warnTarget[chId] , frameIndex[chId]);
+				warnModeHandle(tmpMVTarget,chId);
 
-				m_postDetect[chId].GetMeanVar(frame[chId], m_warnTarget[chId], m_scaleX[chId],	m_scaleY[chId], cv::Size(m_offsetPt[chId].x,m_offsetPt[chId].y));
-
-			       m_postDetect[chId].WarnTargetValidAnalyse(m_warnTarget[chId],model[chId],frame[chId].data,m_scaleX[chId],m_scaleY[chId], cv::Size(m_offsetPt[chId].x,m_offsetPt[chId].y));
-			
-				if(m_bSelfDraw[chId] && !disframe[chId].empty())
-				{
-					int	npoint	= m_warnRoiVec[chId].size();
-					for(int i=0; i<npoint; i++)
-					{
-						line(disframe[chId], m_warnRoiVec[chId][i], m_warnRoiVec[chId][(i+1)%npoint], cvScalar(0,0,255,255), 4, 8);
-					}
-					m_postDetect[chId].DrawBGFGTarget(disframe[chId]);
-					m_postDetect[chId].DrawLOSTTarget(disframe[chId]);
-				}
 			}
 			else if( (m_warnMode[chId] & WARN_TRACK_MODE) )
 			{
-				m_MSTrkObj[chId].Process(bakOrigframe[chId], tmpMVTarget, bRun);
-				if(m_bSelfDraw[chId] && !disframe[chId].empty())
-				{
-					int	npoint	= m_warnRoiVec[chId].size();
-					for(int i=0; i<npoint; i++)
-					{
-						line(disframe[chId], m_warnRoiVec[chId][i], m_warnRoiVec[chId][(i+1)%npoint], cvScalar(0,0,255,255), 4, 8);
-					}
-					m_MSTrkObj[chId].DrawTrkTarget(disframe[chId], disframe[chId], false);
-					//m_MSTrkObj[chId].DrawTrkTarget(disframe[chId], disframe[chId], true);
-				}
+				warnTrackModeHandle(tmpMVTarget,chId,bRun);
 			}
 			
 			if( m_notifyFunc != NULL )
@@ -1016,6 +1045,8 @@ void CMoveDetector_mv::maskDetectProcess(int chId)
 	}
 	m_busy[chId] = false;
 }
+
+
 
 void CMoveDetector_mv::destoryHistory(int chId)
 {
