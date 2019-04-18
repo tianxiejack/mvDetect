@@ -29,6 +29,8 @@ public:
 	void	DrawLostTarget(cv::Mat	frame,std::vector<LOST_RECT_INFO> &lostTarget);
 	
 	bool  	judgeEdgeInOut(TRK_RECT_INFO* curInfo );
+
+	void 	DeleteOverlap();
 	
 public:
 

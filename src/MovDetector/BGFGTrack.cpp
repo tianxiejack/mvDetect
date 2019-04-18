@@ -200,6 +200,7 @@ static	void	_trackprocess(const cv::Size sz, Pattern  *curPatterns,	 int	numPatt
 			continue;
 		tgtRect	=	cv::Rect(pPat->lefttop.x,	pPat->lefttop.y, pPat->rightbottom.x-pPat->lefttop.x,	pPat->rightbottom.y-pPat->lefttop.y);
 		foverlap	= _bbOverlap(tgtRect, trkRect);
+		
 		if(foverlap > maxoverlap)
 		{
 			maxoverlap	= foverlap;
@@ -317,7 +318,7 @@ void	CBGFGTracker::TrackProcess(const cv::Size sz, Pattern  *curPatterns,	 int	n
 				
 				}else{
 					pTrkInfo	= &m_warnTarget[pPat->IdxVec[k]];
-					pTrkInfo->lost_frames++;
+//					pTrkInfo->lost_frames++;
 				}
 			}
 		}else if(nsize == 1){
@@ -343,6 +344,48 @@ void	CBGFGTracker::TrackProcess(const cv::Size sz, Pattern  *curPatterns,	 int	n
 				printf("\n-------------------------------------------------------------------\n\n");
 			#endif
 
+		}
+	}
+}
+
+void CBGFGTracker::DeleteOverlap()
+{
+	int i, j;
+	TRK_RECT_INFO	*pTrkInfo1, *pTrkInfo2;
+	cv::Rect rec1, rec2, roi;
+	int status;
+	std::vector<bool> boolFlag(SAMPLE_NUMBER, false); 
+	for(i=0; i<SAMPLE_NUMBER; i++)
+	{
+		pTrkInfo1 = &m_warnTarget[i];
+		rec1 = pTrkInfo1->targetRect;
+		
+		if(pTrkInfo1->trkState==TRK_STATE_TRACK )
+		{
+			for(j=i+1; j<SAMPLE_NUMBER; j++){
+				pTrkInfo2 = &m_warnTarget[j];
+				if(pTrkInfo2->trkState==TRK_STATE_TRACK ){
+					rec2 = pTrkInfo2->targetRect;
+					status = _bInRect(rec1, rec2, roi);
+					if(status == 1 || status == 2){
+						if(pTrkInfo1->lost_frames > pTrkInfo2->lost_frames){
+							//ClearTrkTarget(i);
+							//break;
+							boolFlag[i] = true;
+						}else{
+							//ClearTrkTarget(j);
+							boolFlag[j] = true;
+						}
+					}
+				}
+			}	
+		}
+	}
+	for(i=0; i<SAMPLE_NUMBER; i++)
+	{
+		
+		if(boolFlag[i]){
+			ClearTrkTarget(i);
 		}
 	}
 }
@@ -437,7 +480,7 @@ bool chargeRatio(cv::Rect rect)
 {
 	double d;
 	d = (double)rect.width/(double)rect.height ;
-	if( d > 0.5  && d < 2.0 )
+	if( d > 0.25  && d < 4.0 )
 		return true;
 	else
 		return false;
@@ -474,8 +517,6 @@ void	CBGFGTracker::GetTrackTarget(std::vector<TRK_RECT_INFO> &lostTarget, std::v
 	invadeTarget.clear();
 	warnTarget.clear();
 
-
-
 	int	k;
 	TRK_RECT_INFO	*pTrkInfo;
 	int i,j;
@@ -495,12 +536,12 @@ void	CBGFGTracker::GetTrackTarget(std::vector<TRK_RECT_INFO> &lostTarget, std::v
 				invadeTarget.push_back(*pTrkInfo);
 			}
 			int chooseNumber ;
-			if(frameIndex > HOLDING_NUM) 
+			if(frameIndex < HOLDING_NUM) 
 				chooseNumber = 80;
 			else
 				chooseNumber = 30 ;
 			if( pTrkInfo->trk_frames > chooseNumber )
-				if(  chargeRatio(pTrkInfo->targetRect ))
+				if( chargeRatio(pTrkInfo->targetRect ))
 					if(judgeEdgeInOut(pTrkInfo))
 						warnTarget.push_back(*pTrkInfo);
 		}

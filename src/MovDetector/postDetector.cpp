@@ -648,6 +648,7 @@ void	CPostDetect::WarnTargetBGFGTrk_New(const cv::Size sz)
 		m_pPatterns[i].rightbottom.y= targetRec.y+targetRec.height;
 	}
 	m_bgfgTrack.TrackProcess(sz, m_pPatterns,	m_patternnum);
+	m_bgfgTrack.DeleteOverlap();
 }
 
 

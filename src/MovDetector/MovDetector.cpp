@@ -298,17 +298,17 @@ void CMoveDetector_mv::setFrame(cv::Mat	src ,int chId,int accuracy/*2*/,int inpu
 	
 	if(inputThreshold < 1)
 		inputThreshold = 16;
-	if(inputMinArea < 100 )
-		inputMinArea = 9;
+	if(inputMinArea < 255 )
+		inputMinArea = 255;
 	if(inputMaxArea > 1000000)
 		inputMaxArea = 1000000;
 
 	if(inputMinArea > inputMaxArea)
 	{
-		inputMinArea = 1000;
+		inputMinArea = 255;
 		inputMaxArea = 70000;
 	}
-	
+		
 	//UInt32 t1 = OSA_getCurTimeInMsec();
 	int state = 0;
 	std::vector<cv::Point>::iterator ptmp;
@@ -806,7 +806,7 @@ bool CMoveDetector_mv::getFrameMV(cv::Mat preFrame, cv::Mat curFrame, cv::Point2
 	 }
 	 return false;
 }
-#define PRINTFABLE 1
+#define PRINTFABLE 0
 
 bool CMoveDetector_mv::judgeFirst(int chId)
 {
@@ -867,9 +867,9 @@ void CMoveDetector_mv::warnModeHandle(std::vector<TRK_RECT_INFO>& MVTarget,int c
 	//m_postDetect[chId].TargetBGFGAnalyse();
 	m_postDetect[chId].GetBGFGTarget(m_warnLostTarget[chId], m_warnInvadeTarget[chId], m_warnTarget[chId] , frameIndex[chId]);
 
-	m_postDetect[chId].GetMeanVar(frame[chId], m_warnTarget[chId], m_scaleX[chId],	m_scaleY[chId], cv::Size(m_offsetPt[chId].x,m_offsetPt[chId].y));
+//	m_postDetect[chId].GetMeanVar(frame[chId], m_warnTarget[chId], m_scaleX[chId],	m_scaleY[chId], cv::Size(m_offsetPt[chId].x,m_offsetPt[chId].y));
 
-	m_postDetect[chId].WarnTargetValidAnalyse(m_warnTarget[chId],model[chId],frame[chId].data,m_scaleX[chId],m_scaleY[chId], cv::Size(m_offsetPt[chId].x,m_offsetPt[chId].y));
+//	m_postDetect[chId].WarnTargetValidAnalyse(m_warnTarget[chId],model[chId],frame[chId].data,m_scaleX[chId],m_scaleY[chId], cv::Size(m_offsetPt[chId].x,m_offsetPt[chId].y));
 
 	if(m_bSelfDraw[chId] && !disframe[chId].empty())
 	{
@@ -929,10 +929,9 @@ void CMoveDetector_mv::maskDetectProcess(int chId)
 	if(!frameIn[chId].empty())
 	{
 		int64 t1 = getTickCount();//OSA_getCurTimeInMsec() ;
-		OSA_printf("**********************\n\n");
 
 		frameIn[chId].copyTo(frame[chId]);
-		OSA_printf("%s:delt_copy=%f sec\n",__func__, ((getTickCount()-t1)/getTickFrequency()));
+
 #if 1
 		if(frame[chId].cols != m_BKWidth[chId] || frame[chId].rows != m_BKHeight[chId]){
 			if(model[chId]!= NULL)	{
@@ -1000,6 +999,7 @@ void CMoveDetector_mv::maskDetectProcess(int chId)
 			pMVObj[k]->GetMoveDetect(BGMask[k].data, BGMask[k].cols, BGMask[k].rows, BGMask[k].cols, minArea[chId],maxArea[chId],5);
 			pMVObj[k]->MovTargetDetect(m_scaleX[chId],	m_scaleY[chId]);
 		}
+			
 		{
 #if PRINTFABLE
 			OSA_printf("%s:delt_t2=%f sec\n",__func__, ((getTickCount()-t1)/getTickFrequency()));

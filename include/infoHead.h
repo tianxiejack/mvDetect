@@ -25,7 +25,7 @@ typedef	enum{
 typedef	enum{
 	TRK_STATE_IDLE				=		0x00,
 	TRK_STATE_ACQ				=		0x01,
-	TRK_STATE_TRACK				=		0x02
+	TRK_STATE_TRACK				=		0x02,
 }TRK_STATE;
 
 typedef	enum{
