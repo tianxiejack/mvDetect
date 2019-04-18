@@ -16,7 +16,7 @@ CBGFGTracker::CBGFGTracker()
 	m_thredParam.trkThred = 0.1;//0.2;
 	m_thredParam.dispFrames = 25;
 	m_thredParam.totalFrames = 100;
-	m_thredParam.targetSize	= 120;
+	m_thredParam.targetSize	= 225;
 	m_thredParam.distRoi = 2.0;
 
 	lostTargetBK.clear();
@@ -220,28 +220,24 @@ static	void	_trackprocess(const cv::Size sz, Pattern  *curPatterns,	 int	numPatt
 	else//没有跟踪到目标
 	{
 		/*
-		if(pTrkInfo->lost_frames == 0){
+			centpt0.x = pTrkInfo->targetRect.x + pTrkInfo->targetRect.width/2;
+			centpt0.y = pTrkInfo->targetRect.y + pTrkInfo->targetRect.height/2;
+			centpt1.x = pTrkInfo->targetVector[0].x + pTrkInfo->targetVector[0].width/2;
+			centpt1.y = pTrkInfo->targetVector[0].y + pTrkInfo->targetVector[0].height/2;
 
-			idx = (pTrkInfo->trk_frames>10)?9:(pTrkInfo->trk_frames-1);
-			idx0 = (idx>0)?(idx-1):0;
-			centpt0.x = pTrkInfo->targetVector[idx0].x +pTrkInfo->targetVector[idx0].width/2;
-			centpt0.y = pTrkInfo->targetVector[idx0].y +pTrkInfo->targetVector[idx0].height/2;
-			centpt1.x = pTrkInfo->targetVector[idx].x +pTrkInfo->targetVector[idx].width/2;
-			centpt1.y = pTrkInfo->targetVector[idx].y +pTrkInfo->targetVector[idx].height/2;
+			pTrkInfo->lostVel.x = (centpt0.x-centpt1.x)/500;
+			pTrkInfo->lostVel.y = (centpt0.y-centpt1.y)/500;
+			
+			pTrkInfo->targetRect.x += pTrkInfo->lostVel.x;
+			pTrkInfo->targetRect.y += pTrkInfo->lostVel.y;
 
-			pTrkInfo->lostVel.x = (centpt1.x-centpt0.x);///(idx+1);
-			pTrkInfo->lostVel.y = (centpt1.y-centpt0.y);///(idx+1);
-		}
-		pTrkInfo->targetRect.x += pTrkInfo->lostVel.x;
-		pTrkInfo->targetRect.y += pTrkInfo->lostVel.y;
-
-		if(pTrkInfo->targetRect.x<0) pTrkInfo->targetRect.x=0;
-		if(pTrkInfo->targetRect.y<0) pTrkInfo->targetRect.y=0;
-		if(pTrkInfo->targetRect.x+pTrkInfo->targetRect.width>sz.width)
-			pTrkInfo->targetRect.x = sz.width - pTrkInfo->targetRect.width;
-		if(pTrkInfo->targetRect.y+pTrkInfo->targetRect.height>sz.height)
-			pTrkInfo->targetRect.y = sz.height - pTrkInfo->targetRect.height;
-		 */
+			if(pTrkInfo->targetRect.x<0) pTrkInfo->targetRect.x=0;
+			if(pTrkInfo->targetRect.y<0) pTrkInfo->targetRect.y=0;
+			if(pTrkInfo->targetRect.x+pTrkInfo->targetRect.width>sz.width)
+				pTrkInfo->targetRect.x = sz.width - pTrkInfo->targetRect.width;
+			if(pTrkInfo->targetRect.y+pTrkInfo->targetRect.height>sz.height)
+				pTrkInfo->targetRect.y = sz.height - pTrkInfo->targetRect.height;
+		*/
 		pTrkInfo->trk_frames++;//等待处理
 		pTrkInfo->lost_frames++;
 		if(pTrkInfo->lost_frames > 16){//连续丢失20帧以上，进入闲置状态
@@ -271,7 +267,7 @@ void	CBGFGTracker::TrackProcess(const cv::Size sz, Pattern  *curPatterns,	 int	n
 			pTrkInfo->disp_frames	= 0;
 			pTrkInfo->trk_frames = 1;
 			pTrkInfo->lost_frames = 0;
-			memcpy(&pTrkInfo->targetVector[pTrkInfo->trk_frames-1],&pTrkInfo->targetRect,sizeof(cv::Rect));
+			memcpy(&pTrkInfo->targetVector[0],&pTrkInfo->targetRect,sizeof(cv::Rect));
 		}
 		else	if (pTrkInfo->trkState	==TRK_STATE_TRACK)
 		{
@@ -447,17 +443,44 @@ bool chargeRatio(cv::Rect rect)
 		return false;
 }
 
+bool CBGFGTracker::judgeEdgeInOut(TRK_RECT_INFO* curInfo )
+{
+	double	tgw	= curInfo->targetRect.width;
+	double	tgh	= curInfo->targetRect.height;
+	double	diagd	 = sqrt(tgw*tgw+tgh*tgh);
+	double	maxd	=  diagd*3/4;
+	double	mind	=	tgw>tgh?tgw/4:tgh/4;
+	maxd = maxd<60.0?60.0:maxd;
+	bool retFlag = false;
+	if(curInfo->distance>=mind /*&& distance<=maxd	*/){
+		curInfo->targetType = TARGET_IN_POLYGON;
+		retFlag = true;
+	}else if(curInfo->distance>-mind	&&	curInfo->distance<mind	){
+		curInfo->targetType = TARGET_IN_EDGE;
+		retFlag = true;
+	}else if(/*distance>= -maxd	&&	*/curInfo->distance<=	-mind	){
+		curInfo->targetType = TARGET_OUT_POLYGON;
+		retFlag = false;
+	}else{
+		curInfo->targetType = TARGET_NORAM;
+		retFlag = true;
+	}
+	return retFlag;	
+}
+
 void	CBGFGTracker::GetTrackTarget(std::vector<TRK_RECT_INFO> &lostTarget, std::vector<TRK_RECT_INFO> &invadeTarget, std::vector<TRK_RECT_INFO> &warnTarget , int frameIndex)
 {
 	lostTarget.clear();
 	invadeTarget.clear();
 	warnTarget.clear();
 
+
+
 	int	k;
 	TRK_RECT_INFO	*pTrkInfo;
 	int i,j;
 	for(k=0; k<SAMPLE_NUMBER;	k++)
-	{
+	{	
 		j=0;
 		pTrkInfo	= &m_warnTarget[k];
 		pTrkInfo->index = k;
@@ -471,10 +494,15 @@ void	CBGFGTracker::GetTrackTarget(std::vector<TRK_RECT_INFO> &lostTarget, std::v
 			{
 				invadeTarget.push_back(*pTrkInfo);
 			}
-			int chooseNumber = frameIndex > HOLDING_NUM ?  10 : 1 ;
+			int chooseNumber ;
+			if(frameIndex > HOLDING_NUM) 
+				chooseNumber = 80;
+			else
+				chooseNumber = 30 ;
 			if( pTrkInfo->trk_frames > chooseNumber )
-				if(  chargeRatio(pTrkInfo->targetRect )  )
-					warnTarget.push_back(*pTrkInfo);
+				if(  chargeRatio(pTrkInfo->targetRect ))
+					if(judgeEdgeInOut(pTrkInfo))
+						warnTarget.push_back(*pTrkInfo);
 		}
 	}
 }
@@ -562,8 +590,5 @@ void	CBGFGTracker::DrawLostTarget(cv::Mat	frame,std::vector<LOST_RECT_INFO> &los
 
 	_drawWarnLost(frame, lostTarget, true);
 	
-	lostTargetBK.assign(lostTarget.begin(),lostTarget.end());
-
-	
-
+	lostTargetBK.assign(lostTarget.begin(),lostTarget.end());	
 }

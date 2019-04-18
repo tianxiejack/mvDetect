@@ -180,6 +180,12 @@ private:
 	bool 		m_busy[DETECTOR_NUM];
 	unsigned int  	frameIndex[DETECTOR_NUM];
 
+private:
+	bool judgeFirst(int chId);
+	void warnMoveDetectModeHandle(std::vector<TRK_RECT_INFO>& MVTarget,int chId);
+	void warnModeHandle(std::vector<TRK_RECT_INFO>& MVTarget,int chId);
+	void warnTrackModeHandle(std::vector<TRK_RECT_INFO>& MVTarget,int chId,int bRun);
+
 };
 }
 
