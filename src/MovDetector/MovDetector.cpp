@@ -323,7 +323,7 @@ void CMoveDetector_mv::setFrame(cv::Mat	src ,int chId,int accuracy/*2*/,int inpu
 			polyWarnRoi[0]	= cv::Point(0,0);
 			polyWarnRoi[1]	= cv::Point(srcwidth,0);
 			polyWarnRoi[2]	= cv::Point(srcwidth,srcheight);
-			polyWarnRoi[3]	= cv::Point(0,srcheight);
+			polyWarnRoi[3]	= cv::Point(0,srcheight);			
 			this->setWarningRoi(polyWarnRoi,chId);	
 		}else{
 			int num = m_warnRoiVec[chId].size();
@@ -419,11 +419,18 @@ void CMoveDetector_mv::setFrame(cv::Mat	src ,int chId,int accuracy/*2*/,int inpu
 
 		src(boundRect).copyTo(gray);
 
-		this->setROIScalXY(1.0,1.0,chId);
+		float fx = 1.0;
+		if(gray.cols*gray.rows > 640*480)
+		{
+			fx = 2.0;
+			cv::resize(gray,gray, cv::Size((int)gray.cols/2, (int)gray.rows/2));
+		}
+
+		this->setROIScalXY(fx,fx,chId);
 		m_offsetPt[chId].x = boundRect.x;
 		m_offsetPt[chId].y = boundRect.y;
-		minArea[chId] = inputMinArea/1.0;
-		maxArea[chId] = inputMaxArea/1.0;
+		minArea[chId] = inputMinArea/fx;
+		maxArea[chId] = inputMaxArea/fx;
 //		OSA_printf("%s:boundRect(x=%d,y=%d,w=%d,h=%d)",__func__, boundRect.x, boundRect.y, boundRect.width, boundRect.height);
 	}
 	//printf("delta t2 = %d \n",OSA_getCurTimeInMsec() - t1);
@@ -796,7 +803,7 @@ bool CMoveDetector_mv::getFrameMV(cv::Mat preFrame, cv::Mat curFrame, cv::Point2
 	 }
 	 return false;
 }
-#define PRINTFABLE 0
+#define PRINTFABLE 1
 
 void CMoveDetector_mv::maskDetectProcess(int chId)
 {	
@@ -855,9 +862,10 @@ void CMoveDetector_mv::maskDetectProcess(int chId)
 	if(!frameIn[chId].empty())
 	{
 		int64 t1 = getTickCount();//OSA_getCurTimeInMsec() ;
+		OSA_printf("**********************\n\n");
 
 		frameIn[chId].copyTo(frame[chId]);
-		
+		OSA_printf("%s:delt_copy=%f sec\n",__func__, ((getTickCount()-t1)/getTickFrequency()));
 #if 1
 		if(frame[chId].cols != m_BKWidth[chId] || frame[chId].rows != m_BKHeight[chId]){
 			if(model[chId]!= NULL)	{
