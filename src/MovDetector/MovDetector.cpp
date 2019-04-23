@@ -305,14 +305,14 @@ void CMoveDetector_mv::setFrame(cv::Mat	src ,int chId,int accuracy/*2*/,int inpu
 #endif
 	if(inputThreshold < 1)
 		inputThreshold = 16;
-	if(inputMinArea < 255 )
-		inputMinArea = 255;
+	if(inputMinArea < 225 )
+		inputMinArea = 225;
 	if(inputMaxArea > 1000000)
 		inputMaxArea = 1000000;
 
 	if(inputMinArea > inputMaxArea)
 	{
-		inputMinArea = 255;
+		inputMinArea = 225;
 		inputMaxArea = 70000;
 	}
 		
