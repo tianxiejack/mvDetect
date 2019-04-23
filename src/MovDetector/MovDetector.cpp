@@ -70,6 +70,8 @@ CMoveDetector_mv::~CMoveDetector_mv()
 
 int CMoveDetector_mv::creat(int history /*= 500*/,  float varThreshold /*= 16*/, bool bShadowDetection /*=true*/)
 {
+    printf("\r\n Mvetect.so v1.0 --------------Build date: %s %s \r\n", __DATE__, __TIME__);
+
 	int	i;
 	//initModule_video();
 	setUseOptimized(true);
@@ -295,7 +297,12 @@ void CMoveDetector_mv::setFrame(cv::Mat	src ,int chId,int accuracy/*2*/,int inpu
 {	
 	ASSERT( 1 == src.channels());
 	ASSERT(chId >= 0 && chId < DETECTOR_NUM);
-	
+#if 0
+	unsigned int frameCounttmp;
+	UInt64 timeStamp = cv::getTickCount();
+
+	memcpy(&frameCounttmp , (char*)src.data ,sizeof(unsigned int));
+#endif
 	if(inputThreshold < 1)
 		inputThreshold = 16;
 	if(inputMinArea < 255 )
@@ -442,6 +449,7 @@ void CMoveDetector_mv::setFrame(cv::Mat	src ,int chId,int accuracy/*2*/,int inpu
 	if( !src.empty() ){
 
 		src.copyTo(bakOrigframe[chId]);
+		
 	#if 1
 		cv::blur(gray, frameIn[chId],cv::Size(3,3));
 	//printf("delta t3 = %d \n",OSA_getCurTimeInMsec() - t1);
@@ -452,7 +460,10 @@ void CMoveDetector_mv::setFrame(cv::Mat	src ,int chId,int accuracy/*2*/,int inpu
 		threshold[chId] = inputThreshold;		
 		m_postDetect[chId].InitializedMD(gray.cols, (gray.rows>>1)+16, gray.cols);
 		m_postDetect2[chId].InitializedMD(gray.cols,(gray.rows>>1)+16, gray.cols);
-
+	#if 0
+		memcpy(frameIn[chId].data	,&frameCounttmp , sizeof(frameCounttmp));
+		memcpy(frameIn[chId].data+sizeof(frameCounttmp),&timeStamp,sizeof(timeStamp)); 
+	#endif
 		OSA_semSignal(&m_detectThrObj[chId].procNotifySem);
 		//printf("delta t4 = %d \n",OSA_getCurTimeInMsec() - t1);
 	}
@@ -592,7 +603,7 @@ void	CMoveDetector_mv::getBoundTarget(std::vector<TRK_RECT_INFO>	&resTarget,	int
 
 void	CMoveDetector_mv::getWarnTarget(std::vector<TRK_RECT_INFO>	&resTarget,	int chId	/*= 0*/)
 {
-	CV_Assert(chId	<DETECTOR_NUM);
+	CV_Assert(chId<DETECTOR_NUM);
 	_copyTarget(m_warnTarget[chId], resTarget);
 }
 
@@ -818,6 +829,11 @@ bool CMoveDetector_mv::judgeFirst(int chId)
 		return false;
 	}
 
+	if(0 == frameIndex[chId]){
+		m_postDetect[chId].initWarnTarget();
+		m_warnTarget[chId].clear();
+	}
+
 	if(frameIndex[chId] <= RECORD_NUM)
 		frameIndex[chId]++;
 
@@ -867,9 +883,9 @@ void CMoveDetector_mv::warnModeHandle(std::vector<TRK_RECT_INFO>& MVTarget,int c
 	//m_postDetect[chId].TargetBGFGAnalyse();
 	m_postDetect[chId].GetBGFGTarget(m_warnLostTarget[chId], m_warnInvadeTarget[chId], m_warnTarget[chId] , frameIndex[chId]);
 
-//	m_postDetect[chId].GetMeanVar(frame[chId], m_warnTarget[chId], m_scaleX[chId],	m_scaleY[chId], cv::Size(m_offsetPt[chId].x,m_offsetPt[chId].y));
+	m_postDetect[chId].GetMeanVar(frame[chId], m_warnTarget[chId], m_scaleX[chId],	m_scaleY[chId], cv::Size(m_offsetPt[chId].x,m_offsetPt[chId].y));
 
-//	m_postDetect[chId].WarnTargetValidAnalyse(m_warnTarget[chId],model[chId],frame[chId].data,m_scaleX[chId],m_scaleY[chId], cv::Size(m_offsetPt[chId].x,m_offsetPt[chId].y));
+	m_postDetect[chId].WarnTargetValidAnalyse(m_warnTarget[chId],model[chId],frame[chId].data,m_scaleX[chId],m_scaleY[chId], cv::Size(m_offsetPt[chId].x,m_offsetPt[chId].y));
 
 	if(m_bSelfDraw[chId] && !disframe[chId].empty())
 	{
@@ -903,6 +919,10 @@ void CMoveDetector_mv::maskDetectProcess(int chId)
 {	
 	int  k;
 	bool retFlag = true;	// 1 -- continue  , 0 --- fail & return
+
+	unsigned int frameCounttmp;
+	UInt64 timeStamp;
+	
 	retFlag = judgeFirst(chId);
 	if(!retFlag)
 		return ;
@@ -928,8 +948,14 @@ void CMoveDetector_mv::maskDetectProcess(int chId)
 	
 	if(!frameIn[chId].empty())
 	{
+		
+#if PRINTFABLE
 		int64 t1 = getTickCount();//OSA_getCurTimeInMsec() ;
-
+#endif
+#if 0
+		memcpy(&frameCounttmp,frameIn[chId].data,sizeof(frameCounttmp));
+		memcpy(&timeStamp,frameIn[chId].data+sizeof(frameCounttmp),sizeof(timeStamp));
+#endif
 		frameIn[chId].copyTo(frame[chId]);
 
 #if 1
@@ -1031,7 +1057,11 @@ void CMoveDetector_mv::maskDetectProcess(int chId)
 			{
 				warnTrackModeHandle(tmpMVTarget,chId,bRun);
 			}
-			
+		#if 0
+			printf("************before callback***************\n");
+			printf(" frameCount : %d, during serFrame2callback time:%f\n",frameCounttmp,(cv::getTickCount() - timeStamp)*1000/cv::getTickFrequency());
+			printf("------------------------------------\n");
+		#endif		
 			if( m_notifyFunc != NULL )
 			{
 				(*m_notifyFunc)(m_context, chId);

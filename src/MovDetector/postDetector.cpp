@@ -760,3 +760,10 @@ void	CPostDetect::DrawLOSTTarget(cv::Mat	frame)
 {
 	m_bgfgTrack.DrawLostTarget(frame,debugLostTarget);
 }
+
+void	CPostDetect::initWarnTarget()
+{
+	m_bgfgTrack.initWarnTarget();
+	return;
+}
+

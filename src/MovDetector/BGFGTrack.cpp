@@ -248,6 +248,14 @@ static	void	_trackprocess(const cv::Size sz, Pattern  *curPatterns,	 int	numPatt
 }
 #endif
 
+
+void	CBGFGTracker::initWarnTarget()
+{
+	memset(m_warnTarget,	0x00,	sizeof(TRK_RECT_INFO)*SAMPLE_NUMBER);
+	return ;
+}
+
+
 void	CBGFGTracker::TrackProcess(const cv::Size sz, Pattern  *curPatterns,	 int	numPatterns)
 {
 	int	i,	k;
@@ -478,12 +486,19 @@ int	CBGFGTracker::TrackAnalyse(std::vector<cv::Point2i>		warnRoi)
 
 bool chargeRatio(cv::Rect rect)
 {
+	bool ret ;
 	double d;
-	d = (double)rect.width/(double)rect.height ;
-	if( d > 0.25  && d < 4.0 )
-		return true;
-	else
+
+	if(rect.width > 80 || rect.height > 80 )
 		return false;
+	
+	d = (double)rect.width/(double)rect.height ;
+	if( d >= 0.25  && d <= 4.0 )
+		ret = true;
+	else
+		ret = false;
+
+	return ret;
 }
 
 bool CBGFGTracker::judgeEdgeInOut(TRK_RECT_INFO* curInfo )
@@ -506,7 +521,7 @@ bool CBGFGTracker::judgeEdgeInOut(TRK_RECT_INFO* curInfo )
 		retFlag = false;
 	}else{
 		curInfo->targetType = TARGET_NORAM;
-		retFlag = true;
+		retFlag = false;
 	}
 	return retFlag;	
 }

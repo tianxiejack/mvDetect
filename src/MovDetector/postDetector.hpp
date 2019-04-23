@@ -59,6 +59,7 @@ public:
 
 	void		DrawLOSTTarget(cv::Mat	frame);
 	void 		GetMeanVar(const cv::Mat frame, std::vector<TRK_RECT_INFO> &warnTarget, float nScalX , float nScalY, cv::Size offsize);
+	void 		initWarnTarget();
 	
 public:
 	Pattern  *m_pPatterns;

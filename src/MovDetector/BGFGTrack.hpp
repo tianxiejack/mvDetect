@@ -31,6 +31,7 @@ public:
 	bool  	judgeEdgeInOut(TRK_RECT_INFO* curInfo );
 
 	void 	DeleteOverlap();
+	void	initWarnTarget();
 	
 public:
 
