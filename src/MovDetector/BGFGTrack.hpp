@@ -21,14 +21,14 @@ public:
 	void	SetTrkTarget(const std::vector<TRK_RECT_INFO>	warnTarget);
 	void	TrackProcess(const cv::Size sz, Pattern  *curPatterns,	 int	numPatterns);
 	int		TrackAnalyse(std::vector<cv::Point2i>	warnRoi);
-	void	GetTrackTarget(std::vector<TRK_RECT_INFO> &lostTarget, std::vector<TRK_RECT_INFO> &invadeTarget, std::vector<TRK_RECT_INFO> &warnTarget,int frameIndex);
+	void	GetTrackTarget(std::vector<TRK_RECT_INFO> &lostTarget, std::vector<TRK_RECT_INFO> &invadeTarget, std::vector<TRK_RECT_INFO> &warnTarget,int frameIndex,std::vector<cv::Point2i> warnRoi);
 	void	ClearTrkTarget(int	Idx);
 
 	void	SetTrkThred(TRK_THRED	 trkThred);
 	void	DrawWarnTarget(cv::Mat	frame);
 	void	DrawLostTarget(cv::Mat	frame,std::vector<LOST_RECT_INFO> &lostTarget);
 	
-	bool  	judgeEdgeInOut(TRK_RECT_INFO* curInfo );
+	bool  	judgeEdgeInOut(TRK_RECT_INFO* curInfo, std::vector<cv::Point2i> warnRoi);
 
 	void 	DeleteOverlap();
 	void	initWarnTarget();

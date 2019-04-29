@@ -576,11 +576,11 @@ void	CPostDetect::warnTargetSelect_New(const std::vector<TRK_RECT_INFO>	MVTarget
 	for(i=0; i<nsize; i++){
 		cv::Rect targetRec = MVTarget[i].targetRect;
 		cv::Point2f rc_center = cv::Point2f((float)targetRec.x+targetRec.width/2.0, (float)targetRec.y+targetRec.height/2.0);
-		double	distance	= cv::pointPolygonTest( polyRoi, rc_center, true );///1.0
+		//double	distance	= cv::pointPolygonTest( polyRoi, rc_center, true );///1.0
 
 		TRK_RECT_INFO	curInfo;
 		curInfo.targetRect		= targetRec;
-		curInfo.distance		= distance;
+		//curInfo.distance		= distance;
 		curInfo.disp_frames	=	0;
 		curInfo.warnType	=	WARN_STATE_IDLE;
 		curInfo.trk_frames	= 0;
@@ -748,7 +748,7 @@ void CPostDetect::GetMeanVar(const cv::Mat frame, std::vector<TRK_RECT_INFO> &wa
 
 void	CPostDetect::GetBGFGTarget(std::vector<TRK_RECT_INFO> &lostTarget, std::vector<TRK_RECT_INFO> &invadeTarget, std::vector<TRK_RECT_INFO> &warnTarget,int frameIndex)
 {
-	m_bgfgTrack.GetTrackTarget(lostTarget, invadeTarget, warnTarget , frameIndex );
+	m_bgfgTrack.GetTrackTarget(lostTarget, invadeTarget, warnTarget , frameIndex, m_warnRoi);
 }
 
 void	CPostDetect::DrawBGFGTarget(cv::Mat	frame)
