@@ -501,7 +501,7 @@ bool chargeRatio(cv::Rect rect)
 	return ret;
 }
 
-bool CBGFGTracker::judgeEdgeInOut(TRK_RECT_INFO* curInfo )
+bool CBGFGTracker::judgeEdgeInOut(TRK_RECT_INFO* curInfo, std::vector<cv::Point2i> warnRoi)
 {
 	double	tgw	= curInfo->targetRect.width;
 	double	tgh	= curInfo->targetRect.height;
@@ -510,6 +510,10 @@ bool CBGFGTracker::judgeEdgeInOut(TRK_RECT_INFO* curInfo )
 	double	mind	=	tgw>tgh?tgw/4:tgh/4;
 	maxd = maxd<60.0?60.0:maxd;
 	bool retFlag = false;
+
+	cv::Point2f rc_center = cv::Point2f((float)curInfo->targetRect.x+curInfo->targetRect.width/2.0, (float)curInfo->targetRect.y+curInfo->targetRect.height/2.0);
+	curInfo->distance	= cv::pointPolygonTest( warnRoi, rc_center, true );///1.0
+		
 	if(curInfo->distance>=mind /*&& distance<=maxd	*/){
 		curInfo->targetType = TARGET_IN_POLYGON;
 		retFlag = true;
@@ -526,7 +530,7 @@ bool CBGFGTracker::judgeEdgeInOut(TRK_RECT_INFO* curInfo )
 	return retFlag;	
 }
 
-void	CBGFGTracker::GetTrackTarget(std::vector<TRK_RECT_INFO> &lostTarget, std::vector<TRK_RECT_INFO> &invadeTarget, std::vector<TRK_RECT_INFO> &warnTarget , int frameIndex)
+void	CBGFGTracker::GetTrackTarget(std::vector<TRK_RECT_INFO> &lostTarget, std::vector<TRK_RECT_INFO> &invadeTarget, std::vector<TRK_RECT_INFO> &warnTarget , int frameIndex,std::vector<cv::Point2i> warnRoi)
 {
 	lostTarget.clear();
 	invadeTarget.clear();
@@ -557,7 +561,7 @@ void	CBGFGTracker::GetTrackTarget(std::vector<TRK_RECT_INFO> &lostTarget, std::v
 				chooseNumber = 30 ;
 			if( pTrkInfo->trk_frames > chooseNumber )
 				if( chargeRatio(pTrkInfo->targetRect ))
-					if(judgeEdgeInOut(pTrkInfo))
+					if(judgeEdgeInOut(pTrkInfo,warnRoi))
 						warnTarget.push_back(*pTrkInfo);
 		}
 	}
