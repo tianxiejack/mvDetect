@@ -15,8 +15,9 @@ namespace mv_detect{
 
 #define	RECORD_NUM	1000	
 #define	SPEEDUP_NUM	100
+CMoveDetector_mv* CMoveDetector_mv::pThis = NULL;
 
-CMoveDetector_mv::CMoveDetector_mv()
+CMoveDetector_mv::CMoveDetector_mv():m_thrOpclExit(false)
 {
 	int	i;
 	m_bExit	 = FALSE;
@@ -57,8 +58,9 @@ CMoveDetector_mv::CMoveDetector_mv()
 
 	statusFlag[i] = false;
 	doneFlag[i]   = true;
-		
+
 	}
+	pThis = this;
 	OSA_mutexCreate(&syncSetWaringROI);
 }
 
@@ -104,7 +106,13 @@ int CMoveDetector_mv::creat(int history /*= 500*/,  float varThreshold /*= 16*/,
 		}
 #endif
 	}
+	
+	OSA_thrCreate(&m_opclHandle, opencloseHandle, 0,0,0);
 
+	m_status.clear();
+	m_statusBK.clear();
+	m_status.reserve(DETECTOR_NUM);
+	m_statusBK.reserve(DETECTOR_NUM);
 	return	0;
 }
 
@@ -208,7 +216,7 @@ int CMoveDetector_mv::destroy()
 		statusFlag[i] = false;
 		doneFlag[i] = false;
 	}
-	
+	OSA_thrDelete(&m_opclHandle);
 	return rtn;
 }
 
@@ -634,7 +642,39 @@ bool CMoveDetector_mv::isStopping(int chId)
 		return false;
 }
 
-void CMoveDetector_mv::stoppingReset(int chId)
+bool CMoveDetector_mv::isWait(int chId)
+{
+	if( !statusFlag[chId] && doneFlag[chId] )	
+		return true;
+	else
+		return false;
+}
+
+
+void CMoveDetector_mv::openInside(int chId)
+{
+	if( isWait(chId) )
+	{
+		statusFlag[chId] = true;
+		doneFlag[chId] = false;
+		frameIndex[chId] = 0;
+	}
+	return;
+}
+
+
+void CMoveDetector_mv::closeInside(int chId)
+{
+	if( isRun(chId) )
+	{
+		statusFlag[chId] = false;
+		OSA_semSignal(&m_detectThrObj[chId].procNotifySem);
+	}
+	return ;
+}
+
+
+void CMoveDetector_mv::stoppingResetInside(int chId)
 {
 	if( isStopping(chId) ) 
 	{
@@ -645,35 +685,28 @@ void CMoveDetector_mv::stoppingReset(int chId)
 	}
 }
 
-bool CMoveDetector_mv::isWait(int chId)
+
+void CMoveDetector_mv::stoppingReset(int chId)
 {
-	if( !statusFlag[chId] && doneFlag[chId] )	
-		return true;
-	else
-		return false;
+
 }
-
-
 
 
 void CMoveDetector_mv::mvOpen(int chId)
 {	
-	if( isWait(chId) )
-	{
-		statusFlag[chId] = true;
-		doneFlag[chId] = false;
-		frameIndex[chId] = 0;
-	}
+	if(chId >= DETECTOR_NUM  || chId < 0)
+		return ;
+	m_status[chId] = true;
+	return ;
 }
 
 
 void CMoveDetector_mv::mvClose(int chId)
 {
-	if( isRun(chId) )
-	{
-		statusFlag[chId] = false;
-		OSA_semSignal(&m_detectThrObj[chId].procNotifySem);
-	}
+	if(chId >= DETECTOR_NUM  || chId < 0)
+		return ;
+	m_status[chId] = false;
+	return ;
 }
 
 void  CMoveDetector_mv::speedupUpdateFactor(int chId /*= 0*/)
@@ -1118,4 +1151,35 @@ void CMoveDetector_mv::mainProcTsk(DETECT_ProcThrObj *muv)
 	OSA_printf("%s: Detect Proc Tsk[%d] Is Exit...\n",__func__, muv->detectId);
 }
 
+
+void* CMoveDetector_mv::opencloseHandle(void* p)
+{
+	int i;
+	static int num = 0;
+	struct timeval tv;
+
+	while(pThis->m_thrOpclExit == false)
+	{			
+		for(i=0;i<DETECTOR_NUM;i++){
+			if( pThis->m_status[i] ){
+				if( !pThis->isRun(i) )
+					pThis->openInside(i);	
+			}else{
+				if( !pThis->isWait(i) )
+					pThis->closeInside(i);
+			}
+		}
+		tv.tv_sec = 0;
+		tv.tv_usec = 10*1000;
+		select(0, NULL, NULL, NULL, &tv);
+	}
+	return NULL;
 }
+
+
+}
+
+
+
+
+

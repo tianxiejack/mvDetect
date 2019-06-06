@@ -58,6 +58,7 @@ class CMoveDetector_mv	:	public CMvDectInterface
 public:
 	CMoveDetector_mv();
 	virtual	~CMoveDetector_mv();
+	static CMoveDetector_mv* pThis;
 #ifdef		BGFG_CR
 	void	setDetectShadows(bool	bShadow,	int chId	= 0);
 	void	setHistory(int nHistory,	int chId	= 0);
@@ -103,6 +104,11 @@ public:
 	void destoryHistory(int chId);
 	void speedupUpdateFactor(int chId);
 	void recoverUpdateFactor(int chId);
+
+	void openInside(int chId);
+	void closeInside(int chId);
+	void stoppingResetInside(int chId);
+	
 	
 public:
 	MOG2_PARAM	m_mogParam;
@@ -127,7 +133,9 @@ public:
 	int m_BKWidth[DETECTOR_NUM], m_BKHeight[DETECTOR_NUM];
 	bool statusFlag[DETECTOR_NUM];
 	bool doneFlag[DETECTOR_NUM];
-	
+
+	std::vector<bool> m_status;
+	std::vector<bool> m_statusBK;
 protected:
 
 	std::vector<TRK_RECT_INFO>		m_warnLostTarget[DETECTOR_NUM];//丢失目标检测
@@ -186,6 +194,9 @@ private:
 	void warnModeHandle(std::vector<TRK_RECT_INFO>& MVTarget,int chId);
 	void warnTrackModeHandle(std::vector<TRK_RECT_INFO>& MVTarget,int chId,int bRun);
 
+	OSA_ThrHndl m_opclHandle;
+	bool m_thrOpclExit;
+	static void* opencloseHandle(void* p);
 };
 }
 
