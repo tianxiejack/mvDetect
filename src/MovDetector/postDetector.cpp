@@ -700,15 +700,18 @@ void CPostDetect::WarnTargetValidAnalyse(std::vector<TRK_RECT_INFO> &warnTarget,
 			w /= nScalX;
 			h /= nScalY;
 			
-			libvibeModel_Sequential_Update_8u_C3R_part(model,image_data,x,y,w,h);
+			if(model != NULL)
+			{
+				libvibeModel_Sequential_Update_8u_C3R_part(model,image_data,x,y,w,h);
 
-			LOST_RECT_INFO pTmp;
-			memcpy(&pTmp.targetRect,&warnTarget[i].targetVector[0],sizeof(cv::Rect));
-			pTmp.disp_frames = 15;
-			debugLostTarget.push_back(pTmp);
+				LOST_RECT_INFO pTmp;
+				memcpy(&pTmp.targetRect,&warnTarget[i].targetVector[0],sizeof(cv::Rect));
+				pTmp.disp_frames = 15;
+				debugLostTarget.push_back(pTmp);
 
-			m_bgfgTrack.ClearTrkTarget(warnTarget[i].index);
-			warnTarget.erase(warnTarget.begin() + i);
+				m_bgfgTrack.ClearTrkTarget(warnTarget[i].index);
+				warnTarget.erase(warnTarget.begin() + i);
+			}
 		}
 	}
 }

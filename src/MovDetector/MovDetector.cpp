@@ -500,14 +500,14 @@ void	CMoveDetector_mv::setWarningRoi(std::vector<cv::Point2i>	warnRoi,	int chId	
 		m_offsetPt[chId].x = boundRect.x;
 		m_offsetPt[chId].y = boundRect.y;
 	
-
-		if(model[chId] != NULL){
+		if(model[chId] != NULL)
+		{
 			OSA_mutexLock(&syncSetWaringROI);
 			libvibeModel_Sequential_Free(model[chId]);
 			model[chId] = NULL;
 			OSA_mutexUnlock(&syncSetWaringROI);
 		}
-		
+
 		m_BKWidth[chId]  = 0;
 		m_BKHeight[chId] = 0;
 		threshold[chId]  = 0;
