@@ -106,13 +106,13 @@ int CMoveDetector_mv::creat(int history /*= 500*/,  float varThreshold /*= 16*/,
 		}
 #endif
 	}
-	
-	OSA_thrCreate(&m_opclHandle, opencloseHandle, 0,0,0);
 
 	m_status.clear();
 	m_statusBK.clear();
 	m_status.reserve(DETECTOR_NUM);
 	m_statusBK.reserve(DETECTOR_NUM);
+	
+	OSA_thrCreate(&m_opclHandle, opencloseHandle, 0,0,0);
 	return	0;
 }
 
@@ -992,6 +992,7 @@ void CMoveDetector_mv::maskDetectProcess(int chId)
 		frameIn[chId].copyTo(frame[chId]);
 
 #if 1
+		OSA_mutexLock(&syncSetWaringROI);
 		if(frame[chId].cols != m_BKWidth[chId] || frame[chId].rows != m_BKHeight[chId]){
 			if(model[chId]!= NULL)	{
 				libvibeModel_Sequential_Free(model[chId]);
@@ -999,13 +1000,12 @@ void CMoveDetector_mv::maskDetectProcess(int chId)
 			}
 		}
 		if (model[chId] == NULL) {
-			model[chId] = (vibeModel_Sequential_t*)libvibeModel_Sequential_New(threshold[chId]);
+			model[chId] = (vibeModel_Sequential_t*)libvibeModel_Sequential_New(threshold[chId]);	
 			libvibeModel_Sequential_AllocInit_8u_C1R(model[chId], frame[chId].data, frame[chId].cols, frame[chId].rows);
 			m_BKWidth[chId] = frame[chId].cols;
 			m_BKHeight[chId] = frame[chId].rows;
 			m_movTarget[chId].clear();
 		}
-		OSA_mutexLock(&syncSetWaringROI);
 	
 		if(model[chId] != NULL){
 			fgmask[chId] = Mat(frame[chId].rows, frame[chId].cols, CV_8UC1);

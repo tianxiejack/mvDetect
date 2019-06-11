@@ -197,6 +197,7 @@ private:
 	OSA_ThrHndl m_opclHandle;
 	bool m_thrOpclExit;
 	static void* opencloseHandle(void* p);
+
 };
 }
 

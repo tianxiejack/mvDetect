@@ -353,15 +353,15 @@ void	CPostDetect::MovTargetDetect(float nScalX /*= 1*/, float nScalY /*= 1*/)
 	center.x = nWidth >> 1;
 	center.y = nHeight >> 1;
 
-	std::vector<cv::Point2f>		polyRoi;
+	//std::vector<cv::Point2f>		polyRoi;
 	cv::Point2f rc_center;
-	int	nsize = m_warnRoi.size();
-	CV_Assert(nsize	>2);
-	polyRoi.resize(nsize);
+	//int	nsize = m_warnRoi.size();
+	//CV_Assert(nsize	>2);
+	//polyRoi.resize(nsize);
 
-	for(i=0; i<nsize; i++){
-		polyRoi[i]	= cv::Point2f((float)m_warnRoi[i].x, (float)m_warnRoi[i].y);
-	}
+	//for(i=0; i<nsize; i++){
+	//	polyRoi[i]	= cv::Point2f((float)m_warnRoi[i].x, (float)m_warnRoi[i].y);
+	//}
 
 	for(int irec = 0; irec<m_patternnum; irec++){
 		memcpy(&curPattern, &m_pPatterns[irec], sizeof(Pattern));
@@ -373,13 +373,13 @@ void	CPostDetect::MovTargetDetect(float nScalX /*= 1*/, float nScalY /*= 1*/)
 
 		rc_center	= cv::Point2f((float)(curPattern.lefttop.x +curPattern.rightbottom.x)/2.0, (float)(curPattern.lefttop.y+curPattern.rightbottom.y)/2.0);
 		cv::Rect rect((int)(rc_center.x-recW/2),	(int)(rc_center.y-recH/2),	 recW, recH);
-		double	distance	= cv::pointPolygonTest( polyRoi, rc_center, true );///1.0
+		//double	distance	= cv::pointPolygonTest( polyRoi, rc_center, true );///1.0
 
 //		if(distance >0.0)
 		{
 			TRK_RECT_INFO	curInfo;
 			curInfo.targetRect		=	rect;
-			curInfo.distance		= distance;
+			curInfo.distance		= 0.0;
 			curInfo.disp_frames	=	0;
 			curInfo.warnType	=	WARN_STATE_IDLE;
 			curInfo.trk_frames	= 0;
