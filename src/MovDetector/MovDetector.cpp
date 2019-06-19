@@ -315,15 +315,15 @@ void CMoveDetector_mv::setFrame(cv::Mat	src ,int chId,int accuracy/*2*/,int inpu
 		inputThreshold = 16;
 	if(inputMinArea < 225 )
 		inputMinArea = 225;
-	if(inputMaxArea > 1000000)
-		inputMaxArea = 1000000;
+	if(inputMaxArea > 100*10000)
+		inputMaxArea = 100*10000;
 
 	if(inputMinArea > inputMaxArea)
 	{
 		inputMinArea = 225;
 		inputMaxArea = 70000;
 	}
-		
+	
 	//UInt32 t1 = OSA_getCurTimeInMsec();
 	int state = 0;
 	std::vector<cv::Point>::iterator ptmp;
@@ -440,7 +440,7 @@ void CMoveDetector_mv::setFrame(cv::Mat	src ,int chId,int accuracy/*2*/,int inpu
 		float fx = 1.0;
 		if(gray.cols*gray.rows > 640*480)
 		{
-			fx = 2.0;
+			 fx = 2.0;
 			cv::resize(gray,gray, cv::Size((int)gray.cols/2, (int)gray.rows/2));
 		}
 
@@ -910,10 +910,18 @@ void CMoveDetector_mv::warnMoveDetectModeHandle(std::vector<TRK_RECT_INFO>& MVTa
 
 void CMoveDetector_mv::warnModeHandle(std::vector<TRK_RECT_INFO>& MVTarget,int chId)
 {
+
 	m_postDetect[chId].warnTargetSelect_New(MVTarget);
+
 	m_postDetect[chId].SetTargetBGFGTrk();
+
 	m_postDetect[chId].WarnTargetBGFGTrk_New(bakOrigframe[chId].size());
-	//m_postDetect[chId].TargetBGFGAnalyse();
+
+	
+	//m_warnTarget[chId].clear();
+	//m_warnTarget[chId] = m_postDetect[chId].m_warnTargetRec;
+	//return ;
+		//m_postDetect[chId].TargetBGFGAnalyse();
 	m_postDetect[chId].GetBGFGTarget(m_warnLostTarget[chId], m_warnInvadeTarget[chId], m_warnTarget[chId] , frameIndex[chId]);
 
 	m_postDetect[chId].GetMeanVar(frame[chId], m_warnTarget[chId], m_scaleX[chId],	m_scaleY[chId], cv::Size(m_offsetPt[chId].x,m_offsetPt[chId].y));
@@ -1013,7 +1021,7 @@ void CMoveDetector_mv::maskDetectProcess(int chId)
 			libvibeModel_Sequential_Segmentation_8u_C1R(model[chId], frame[chId].data, fgmask[chId].data);
 			libvibeModel_Sequential_Update_8u_C1R(model[chId], frame[chId].data, fgmask[chId].data);
 
-			#if 0
+			#if 1
 			cv::Mat dispMat;
 			cvtColor(fgmask[chId], dispMat, CV_GRAY2BGR);
 			imshow("Binary", dispMat);
@@ -1076,6 +1084,9 @@ void CMoveDetector_mv::maskDetectProcess(int chId)
 			CopyTrkTarget(&m_postDetect[chId], tmpMVTarget, nsize1, 0, cv::Size(m_offsetPt[chId].x,m_offsetPt[chId].y));
 			CopyTrkTarget(&m_postDetect2[chId], tmpMVTarget, nsize2, nsize1, offsize);
 			m_postDetect[chId].MergeDetectRegion(tmpMVTarget);
+
+			//m_warnTarget[chId].clear();
+			//m_warnTarget[chId] = tmpMVTarget;
 
 			if( (m_warnMode[chId] & WARN_MOVEDETECT_MODE)	)	//move target detect
 			{

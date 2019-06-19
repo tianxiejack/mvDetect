@@ -488,9 +488,6 @@ bool chargeRatio(cv::Rect rect)
 {
 	bool ret ;
 	double d;
-
-	if(rect.width > 80 || rect.height > 80 )
-		return false;
 	
 	d = (double)rect.width/(double)rect.height ;
 	if( d >= 0.25  && d <= 4.0 )
@@ -558,9 +555,9 @@ void	CBGFGTracker::GetTrackTarget(std::vector<TRK_RECT_INFO> &lostTarget, std::v
 			if(frameIndex < HOLDING_NUM) 
 				chooseNumber = 80;
 			else
-				chooseNumber = 30 ;
+				chooseNumber = 10 ;
 			if( pTrkInfo->trk_frames > chooseNumber )
-				if( chargeRatio(pTrkInfo->targetRect ))
+				//if( chargeRatio(pTrkInfo->targetRect ))
 					if(judgeEdgeInOut(pTrkInfo,warnRoi))
 						warnTarget.push_back(*pTrkInfo);
 		}

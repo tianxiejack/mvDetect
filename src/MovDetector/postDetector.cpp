@@ -214,12 +214,12 @@ void CPostDetect::MergeRect(Pattern	ptn[], int num)
 			rc2 = cv::Rect(ptn[i].lefttop,ptn[i].rightbottom);
 			status = _bInRect(rc1, rc2, roi);
 			if(status == 1){
-				ptn[j].bValid = false;
+				//ptn[j].bValid = false;
 			}else if(status == 2){
-				ptn[i].bValid = false;
+				//ptn[i].bValid = false;
 			}else if(status == 0){//overlap
 				mergeOverLap(rc1,rc2,rc1);
-				ptn[i].bValid = false;
+				//ptn[i].bValid = false;
 			}
 		}
 	}
@@ -258,13 +258,13 @@ void CPostDetect::MergeDetectRegion(std::vector<TRK_RECT_INFO>		&MVTarget)
 			rc2 = tmpMVTarget[i].targetRect;
 			status = _bInRect(rc1, rc2, roi);
 			if(status == 1){
-				validVector[j] = false;
+				//validVector[j] = false;
 			}else if(status == 2){
-				validVector[i] = false;
+				//validVector[i] = false;
 			}else if(status == 0){//overlap
 				mergeOverLap(rc1,rc2,rc1);
 				tmpMVTarget[j].targetRect = rc1;
-				validVector[i] = false;
+				//validVector[i] = false;
 			}
 		}
 	}
@@ -658,9 +658,10 @@ void CPostDetect::WarnTargetValidAnalyse(std::vector<TRK_RECT_INFO> &warnTarget,
 {
 	bool reflag ;
 	int nsize = warnTarget.size();
-		
+	int recNum;	
 	for(int i = 0; i < nsize ; i++ )
 	{
+		recNum = 0;
 		reflag = false;
 		assert(warnTarget[i].trkState == TRK_STATE_TRACK);
 
@@ -675,23 +676,28 @@ void CPostDetect::WarnTargetValidAnalyse(std::vector<TRK_RECT_INFO> &warnTarget,
 		{
 			for( int j = 1 ; j < warnTarget[i].trk_frames ;  ++j )
 			{
-				if( ( abs((x + w/2) - (warnTarget[i].targetVector[j].x + warnTarget[i].targetVector[j].width/2)) < 5)
-					&& ( abs((y + h/2) - (warnTarget[i].targetVector[j].y + warnTarget[i].targetVector[j].height/2)) < 5)
+				if( ( abs((x + w/2) - (warnTarget[i].targetVector[j].x + warnTarget[i].targetVector[j].width/2)) < 1)
+					&& ( abs((y + h/2) - (warnTarget[i].targetVector[j].y + warnTarget[i].targetVector[j].height/2)) < 1)
 					//&& ( abs( w - warnTarget[i].targetVector[j].width) < 40 ) 
 					//&& ( abs( h - warnTarget[i].targetVector[j].height) < 40)
 					)
 				{
-					reflag = true;
+					recNum++;//reflag = true;
 				}
 				else
 				{
-					reflag = false;
+					recNum = 0;//reflag = false;
 					break;
 				}
 			}
 		}
 		else
+			recNum = 0;//reflag = true;
+
+		if(recNum >= 9)
 			reflag = true;
+		else
+			reflag = false;
 
 		if(reflag)
 		{
