@@ -557,7 +557,7 @@ void	CBGFGTracker::GetTrackTarget(std::vector<TRK_RECT_INFO> &lostTarget, std::v
 			else
 				chooseNumber = 10 ;
 			if( pTrkInfo->trk_frames > chooseNumber )
-				//if( chargeRatio(pTrkInfo->targetRect ))
+				if( chargeRatio(pTrkInfo->targetRect ))
 					if(judgeEdgeInOut(pTrkInfo,warnRoi))
 						warnTarget.push_back(*pTrkInfo);
 		}

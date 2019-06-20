@@ -1095,7 +1095,6 @@ void CMoveDetector_mv::maskDetectProcess(int chId)
 			else if( (m_warnMode[chId] & WARN_WARN_MODE))
 			{
 				warnModeHandle(tmpMVTarget,chId);
-
 			}
 			else if( (m_warnMode[chId] & WARN_TRACK_MODE) )
 			{
