@@ -197,7 +197,15 @@ private:
 	OSA_ThrHndl m_opclHandle;
 	bool m_thrOpclExit;
 	static void* opencloseHandle(void* p);
+	void calcCurgray(int chId);
+	void updateAvggray(int chId);
+	void correctgray(int chId);
 
+	
+	float avggray[DETECTOR_NUM];
+	unsigned int curgray[DETECTOR_NUM];
+	float graydelta[DETECTOR_NUM];
+	
 };
 }
 

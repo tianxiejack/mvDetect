@@ -39,6 +39,9 @@ CMoveDetector_mv::CMoveDetector_mv():m_thrOpclExit(false)
 		frameIndex[i] = 0;
 		stoppingRestFlag[i] = false;
 		matchThreshHoldBak = 16;
+		avggray[i] = 0;
+		curgray[i] = 0;
+		graydelta[i] = 10;
 	}
 	m_notifyFunc = NULL;
 	m_context = NULL;
@@ -955,6 +958,48 @@ void CMoveDetector_mv::warnTrackModeHandle(std::vector<TRK_RECT_INFO>& MVTarget,
 	}
 }
 
+void CMoveDetector_mv::calcCurgray(int chId)
+{
+	unsigned int tmp = 0;
+	int total = frame[chId].cols * frame[chId].rows;
+	for(int i=0; i < total ; i++ )
+	{
+		tmp += frame[chId].data[i];
+	}
+
+	curgray[chId]  = (int)((float)tmp/total);
+
+	return ;
+}
+
+void CMoveDetector_mv::updateAvggray(int chId)
+{
+	float f = 0.6;
+	if(0 == avggray[chId])
+		avggray[chId] = curgray[chId];
+	else
+		avggray[chId] = avggray[chId]*f + curgray[chId]*(1-f);
+	
+	return ;
+}
+
+
+void CMoveDetector_mv::correctgray(int chId)
+{
+	float deta = (float)curgray[chId] - avggray[chId];
+	float index = 0;
+	if(  fabs(deta)  > graydelta[chId]   )
+	{
+		index = fabs(deta)/deta;
+		for(int i=0 ; i< frame[chId].cols*frame[chId].rows; i++)
+		{
+			frame[chId].data[i] = frame[chId].data[i] - index*(fabs(deta) - graydelta[chId]);
+		}
+	}
+		
+	return;
+}
+
 
 void CMoveDetector_mv::maskDetectProcess(int chId)
 {	
@@ -999,6 +1044,10 @@ void CMoveDetector_mv::maskDetectProcess(int chId)
 #endif
 		frameIn[chId].copyTo(frame[chId]);
 
+		calcCurgray(chId);
+		updateAvggray(chId);
+		correctgray(chId);
+		
 #if 1
 		OSA_mutexLock(&syncSetWaringROI);
 		if(frame[chId].cols != m_BKWidth[chId] || frame[chId].rows != m_BKHeight[chId]){
@@ -1021,7 +1070,7 @@ void CMoveDetector_mv::maskDetectProcess(int chId)
 			libvibeModel_Sequential_Segmentation_8u_C1R(model[chId], frame[chId].data, fgmask[chId].data);
 			libvibeModel_Sequential_Update_8u_C1R(model[chId], frame[chId].data, fgmask[chId].data);
 
-			#if 1
+			#if 0
 			cv::Mat dispMat;
 			cvtColor(fgmask[chId], dispMat, CV_GRAY2BGR);
 			imshow("Binary", dispMat);
