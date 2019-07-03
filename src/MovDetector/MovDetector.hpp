@@ -203,7 +203,7 @@ private:
 
 	
 	float avggray[DETECTOR_NUM];
-	unsigned int curgray[DETECTOR_NUM];
+	float curgray[DETECTOR_NUM];
 	float graydelta[DETECTOR_NUM];
 	
 };

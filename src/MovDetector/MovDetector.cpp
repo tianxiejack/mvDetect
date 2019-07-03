@@ -326,7 +326,6 @@ void CMoveDetector_mv::setFrame(cv::Mat	src ,int chId,int accuracy/*2*/,int inpu
 		inputMinArea = 225;
 		inputMaxArea = 70000;
 	}
-	
 	//UInt32 t1 = OSA_getCurTimeInMsec();
 	int state = 0;
 	std::vector<cv::Point>::iterator ptmp;
@@ -967,7 +966,7 @@ void CMoveDetector_mv::calcCurgray(int chId)
 		tmp += frame[chId].data[i];
 	}
 
-	curgray[chId]  = (int)((float)tmp/total);
+	curgray[chId]  = (float)tmp/total;
 
 	return ;
 }
@@ -975,10 +974,10 @@ void CMoveDetector_mv::calcCurgray(int chId)
 void CMoveDetector_mv::updateAvggray(int chId)
 {
 	float f = 0.5;
-	if(0 == avggray[chId])
+	if(avggray[chId] < 0.0001)
 		avggray[chId] = curgray[chId];
-	else
-		avggray[chId] = avggray[chId]*f + curgray[chId]*(1-f);
+	//else
+		//avggray[chId] = avggray[chId]*f + curgray[chId]*(1-f);
 	
 	return ;
 }
@@ -986,9 +985,11 @@ void CMoveDetector_mv::updateAvggray(int chId)
 
 void CMoveDetector_mv::correctgray(int chId)
 {
-	float deta = (float)curgray[chId] - avggray[chId];
+	float deta = curgray[chId] - avggray[chId];
 	float index = 0;
-	if(  fabs(deta)  > graydelta[chId]   )
+	printf("fabs(deta) = %f \n", fabs(deta));
+	graydelta[chId] = 1.8;
+	if(  fabs(deta)  > graydelta[chId]  ) 
 	{
 		index = fabs(deta)/deta;
 		for(int i=0 ; i< frame[chId].cols*frame[chId].rows; i++)
@@ -1072,7 +1073,7 @@ void CMoveDetector_mv::maskDetectProcess(int chId)
 			libvibeModel_Sequential_Segmentation_8u_C1R(model[chId], frame[chId].data, fgmask[chId].data);
 			libvibeModel_Sequential_Update_8u_C1R(model[chId], frame[chId].data, fgmask[chId].data);
 
-			#if 1	
+			#if 0
 			cv::Mat dispMat;
 			cvtColor(fgmask[chId], dispMat, CV_GRAY2BGR);
 			imshow("Binary", dispMat);
