@@ -41,7 +41,7 @@ CMoveDetector_mv::CMoveDetector_mv():m_thrOpclExit(false)
 		matchThreshHoldBak = 16;
 		avggray[i] = 0;
 		curgray[i] = 0;
-		graydelta[i] = 10;
+		graydelta[i] = 5;
 	}
 	m_notifyFunc = NULL;
 	m_context = NULL;
@@ -974,7 +974,7 @@ void CMoveDetector_mv::calcCurgray(int chId)
 
 void CMoveDetector_mv::updateAvggray(int chId)
 {
-	float f = 0.6;
+	float f = 0.5;
 	if(0 == avggray[chId])
 		avggray[chId] = curgray[chId];
 	else
@@ -1044,10 +1044,12 @@ void CMoveDetector_mv::maskDetectProcess(int chId)
 #endif
 		frameIn[chId].copyTo(frame[chId]);
 
+	#if 1
 		calcCurgray(chId);
 		updateAvggray(chId);
 		correctgray(chId);
-		
+	#endif
+	
 #if 1
 		OSA_mutexLock(&syncSetWaringROI);
 		if(frame[chId].cols != m_BKWidth[chId] || frame[chId].rows != m_BKHeight[chId]){
@@ -1070,7 +1072,7 @@ void CMoveDetector_mv::maskDetectProcess(int chId)
 			libvibeModel_Sequential_Segmentation_8u_C1R(model[chId], frame[chId].data, fgmask[chId].data);
 			libvibeModel_Sequential_Update_8u_C1R(model[chId], frame[chId].data, fgmask[chId].data);
 
-			#if 0
+			#if 1	
 			cv::Mat dispMat;
 			cvtColor(fgmask[chId], dispMat, CV_GRAY2BGR);
 			imshow("Binary", dispMat);
@@ -1099,6 +1101,7 @@ void CMoveDetector_mv::maskDetectProcess(int chId)
 		(*fgbg[chId])(frame[chId], fgmask[chId], update_bg_model ? -1 : 0);
 		assert(fgmask[chId].channels() == 1);
 #endif
+	
 #if PRINTFABLE
 		OSA_printf("%s:delt_t1=%f sec\n",__func__, ((getTickCount()-t1)/getTickFrequency()));
 #endif

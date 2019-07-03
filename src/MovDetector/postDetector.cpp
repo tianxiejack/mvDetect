@@ -263,7 +263,7 @@ void CPostDetect::MergeDetectRegion(std::vector<TRK_RECT_INFO>		&MVTarget)
 				//validVector[i] = false;
 			}else if(status == 0){//overlap
 				mergeOverLap(rc1,rc2,rc1);
-				tmpMVTarget[j].targetRect = rc1;
+				//tmpMVTarget[j].targetRect = rc1;
 				//validVector[i] = false;
 			}
 		}
