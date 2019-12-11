@@ -316,15 +316,15 @@ void CMoveDetector_mv::setFrame(cv::Mat	src ,int chId,int accuracy/*2*/,int inpu
 #endif
 	if(inputThreshold < 1)
 		inputThreshold = 16;
-	if(inputMinArea < 225 )
-		inputMinArea = 225;
+	if(inputMinArea < 100 )
+		inputMinArea = 100;
 	if(inputMaxArea > 100*10000)
 		inputMaxArea = 100*10000;
 
 	if(inputMinArea > inputMaxArea)
 	{
-		inputMinArea = 225;
-		inputMaxArea = 70000;
+		inputMinArea = 100;
+		inputMaxArea = 1000000;
 	}
 	//UInt32 t1 = OSA_getCurTimeInMsec();
 	int state = 0;
@@ -987,7 +987,7 @@ void CMoveDetector_mv::correctgray(int chId)
 {
 	float deta = curgray[chId] - avggray[chId];
 	float index = 0;
-	printf("fabs(deta) = %f \n", fabs(deta));
+	//printf("fabs(deta) = %f \n", fabs(deta));
 	graydelta[chId] = 1.8;
 	if(  fabs(deta)  > graydelta[chId]  ) 
 	{

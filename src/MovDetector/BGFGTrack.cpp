@@ -16,7 +16,7 @@ CBGFGTracker::CBGFGTracker()
 	m_thredParam.trkThred = 0.1;//0.2;
 	m_thredParam.dispFrames = 25;
 	m_thredParam.totalFrames = 100;
-	m_thredParam.targetSize	= 225;
+	m_thredParam.targetSize	= 100;
 	m_thredParam.distRoi = 2.0;
 
 	lostTargetBK.clear();
@@ -553,7 +553,7 @@ void	CBGFGTracker::GetTrackTarget(std::vector<TRK_RECT_INFO> &lostTarget, std::v
 			}
 			int chooseNumber ;
 			if(frameIndex < HOLDING_NUM) 
-				chooseNumber = 80;
+				chooseNumber = 15;
 			else
 				chooseNumber = 10 ;
 			if( pTrkInfo->trk_frames > chooseNumber )
